@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+    <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Alex Vincent</Authors>
+    <Copyright>Alex Vincent</Copyright>
+    <Description>Unofficial. Fully featured .NET library/wrapper for the Google Photos REST API.</Description>
+    <PackageDescription>
+      $(Description)
+
+      This library enables programmatic access to the media items and albums of a Google Photos account.
+
+      The library leverages the authentication in the official Google.Apis.Auth library and builds on that
+      by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.
+      
+      For more details about the underlying API see the official site, https://developers.google.com/photos
+    </PackageDescription>
+    <RepositoryUrl></RepositoryUrl>
+    <PackageTags>google, photos, rest, api, wrapper, interface</PackageTags>
+    <PackageProjectUrl>https://github.com/f2calv/CasCap.Apis.GooglePhotos</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/f2calv/CasCap.Apis.GooglePhotos</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.46.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="CasCap.Common.Net" Version="(0.0.28,1.0]" />
+  </ItemGroup>
+
+</Project>

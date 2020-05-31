@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\src\CasCap.Apis.GooglePhotos\CasCap.Apis.GooglePhotos.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="(0.0.28,1.0]" />
+  </ItemGroup>
+
+</Project>

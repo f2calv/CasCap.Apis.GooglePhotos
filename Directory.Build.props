@@ -1,0 +1,14 @@
+<Project>
+
+  <PropertyGroup>
+    <RootNamespace>CasCap</RootNamespace>
+    <!--<LangVersion>latest</LangVersion>-->
+    <LangVersion>8.0</LangVersion>
+    <!--<Nullable>enable</Nullable>-->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Alex Vincent</Authors>
+  </PropertyGroup>
+
+</Project>
