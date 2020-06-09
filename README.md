@@ -27,10 +27,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
 {
+    ...
+
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddGooglePhotos();
     }
+
+    ...
 }
 ```
 
@@ -39,6 +43,7 @@ A few required options should be set, these options can be set via an appsetting
 ```json5
 // appsettings.json
 {
+    ...
     "CasCap": {
         "GooglePhotos": {
             "User": "your.email@mydomain.com",
@@ -58,6 +63,7 @@ A few required options should be set, these options can be set via an appsetting
             "ClientSecret": "abcabcabcabcabcabcabcabc",
         }
     }
+    ...
 }
 ```
 
@@ -68,7 +74,7 @@ using Microsoft.Extensions.DependencyInjection;
 public class Startup
 {
     ...
-    
+
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddGooglePhotos(options =>
@@ -102,7 +108,7 @@ Note: If you wish to give your application unfettered access to your photos then
 
 #### FileDataStoreFullPath
 
-The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library will cache the OAuth 2.0 login information in a local JSON file which it will then read from and renew tokens if necessary on subsequent logins. The JSON file is stored at Environment.SpecialFolder;
+The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library will cache the OAuth 2.0 login information in a local JSON file which it will then read tokens from and renew if necessary on subsequent logins. The JSON file(s) are stored per-User at Environment.SpecialFolder.ApplicationData;
 
 - Windows, %user%/something
 - Linux ?
@@ -120,10 +126,9 @@ todo: self-documenting XML comments?
 
 These are demonstration .NET Core applications;
 
-- Simple Console App
-- Moderate Console App w/ Dependency Injection + appsettings.json
-- Advanced Console App w/Generic Host
-- [googfotos](https://github.com/f2calv/googfotos) my .NET Core Tool 
+- [Simple Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/ConsoleApp) not using Dependency Injection.
+- [Advanced Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/GenericHost) using Configuration, Logging and Dependency Injection via the [].NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
+
 
 ### Misc
 
@@ -134,12 +139,12 @@ Key dependencies of this library;
 - [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles all authentication.
 - [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) handles all HttpClient requests.
 [see details here](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/)
+  - Polly
 
 ### Resources
 
 - https://developers.google.com/photos
 
-### To Do List
+### Roadmap
 
-todo: create interface that works with imgur also?
-https://imgurapi.readthedocs.io/en/latest/
+- Create interface that works with other image/media services?
