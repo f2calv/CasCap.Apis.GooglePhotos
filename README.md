@@ -1,4 +1,13 @@
-# Google Photos REST API Wrapper for .NET
+# CasCap.Apis.GooglePhotos
+## *Unofficial* Google Photos REST API Wrapper for .NET
+
+[azdo-badge]: https://dev.azure.com/f2calv/github/_apis/build/status/f2calv.CasCap.Apis.GooglePhotos?branchName=master
+[azdo-url]: https://dev.azure.com/f2calv/github/_build/latest?definitionId=7&branchName=master
+[azdo-coverage-url]: https://img.shields.io/azure-devops/coverage/f2calv/github/7
+[CasCap.Apis.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
+[CasCap.Apis.GooglePhotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
+
+[![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url] [![Nuget][CasCap.Apis.GooglePhotos-badge]][CasCap.Apis.GooglePhotos-url]
 
 This is an *unofficial* Google Photos REST API wrapper library for .NET projects.
 
