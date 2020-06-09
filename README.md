@@ -36,7 +36,7 @@ public class Startup
 
 A few required options should be set, these options can be set via an appsettings.json file;
 
-```json
+```json5
 // appsettings.json
 {
     "CasCap": {
@@ -67,6 +67,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
 {
+    ...
+    
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddGooglePhotos(options =>

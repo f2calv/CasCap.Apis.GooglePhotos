@@ -20,8 +20,6 @@ namespace CasCap
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var config = hostContext.Configuration;
-
                     services.AddGooglePhotos();
                     services.AddHostedService<MyBackgroundService>();
                 })
