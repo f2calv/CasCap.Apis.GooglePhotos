@@ -7,6 +7,7 @@ trigger:
     - feature/*
   paths:
     exclude:
+    - .azure-pipelines
     - LICENSE
     - README.md
 
@@ -49,9 +50,9 @@ stages:
     jobs:
     - job: PublishJob
       variables:
-        Version.Major: 0
+        Version.Major: 1
         Version.Minor: 0
-        Version.PackageMajorMinor: $(Version.Minor).$(Version.Major)-$(packagesToPack)
+        Version.PackageMajorMinor: $(Version.Minor).$(Version.Major)-$(SolutionName)
         Version.Revision: $[counter(variables['Version.PackageMajorMinor'], 0)]
         PackageVersion: $(Version.Major).$(Version.Minor).$(Version.Revision)
       steps:
