@@ -109,10 +109,10 @@ public class Startup
     {
         services.AddGooglePhotos(options =>
         {
-            options.User = "your.email@mydomain.com";
+            options.User = "your.email@mydomain.com";//**replace with your info**
+            options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";//**replace with your info**
+            options.ClientSecret = "abcabcabcabcabcabcabcabc";//**replace with your info**
             options.Scopes = new[] { Scopes.ReadOnly };
-            options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-            options.ClientSecret = "abcabcabcabcabcabcabcabc";
         });
     }
 }
