@@ -15,9 +15,9 @@ namespace CasCap.Services
     public class GooglePhotosService : GooglePhotosServiceBase
     {
         public GooglePhotosService(ILogger<GooglePhotosService> logger,
-            IOptions<GooglePhotosConfig> googlePhotosConfig,
+            IOptions<GooglePhotosOptions> options,
             HttpClient client
-            ) : base(logger, googlePhotosConfig, client)
+            ) : base(logger, options, client)
         {
 
         }

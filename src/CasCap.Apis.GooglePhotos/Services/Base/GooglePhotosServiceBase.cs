@@ -82,21 +82,21 @@ namespace CasCap.Services
             { GooglePhotos.Scope.Sharing , "https://www.googleapis.com/auth/photoslibrary.sharing"}
         };
 
-        GooglePhotosConfig? _googlePhotosConfig;
+        GooglePhotosOptions? _options;
 
         public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
-            IOptions<GooglePhotosConfig> googlePhotosConfig,
+            IOptions<GooglePhotosOptions> options,
             HttpClient client
             )
         {
             _logger = logger;
-            _googlePhotosConfig = googlePhotosConfig.Value;// ?? throw new ArgumentNullException($"{nameof(GooglePhotosConfig)} cannot be null!");
+            _options = options.Value;// ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
             _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
         }
 
         public async Task<bool> Login(string User, string ClientId, string ClientSecret, GooglePhotos.Scope[] Scopes, string? FileDataStoreFullPath = null)
         {
-            _googlePhotosConfig = new GooglePhotosConfig
+            _options = new GooglePhotosOptions
             {
                 User = User,
                 ClientId = ClientId,
@@ -109,23 +109,23 @@ namespace CasCap.Services
 
         public async Task<bool> Login()
         {
-            if (_googlePhotosConfig is null) throw new ArgumentNullException($"{nameof(GooglePhotosConfig)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_googlePhotosConfig.User)) throw new ArgumentNullException($"{nameof(GooglePhotosConfig)}.{nameof(_googlePhotosConfig.User)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_googlePhotosConfig.ClientId)) throw new ArgumentNullException($"{nameof(GooglePhotosConfig)}.{nameof(_googlePhotosConfig.ClientId)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_googlePhotosConfig.ClientSecret)) throw new ArgumentNullException($"{nameof(GooglePhotosConfig)}.{nameof(_googlePhotosConfig.ClientSecret)} cannot be null!");
-            if (_googlePhotosConfig.Scopes.IsNullOrEmpty()) throw new ArgumentNullException($"{nameof(GooglePhotosConfig)}.{nameof(_googlePhotosConfig.Scopes)} cannot be null/empty!");
+            if (_options is null) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
+            if (_options.Scopes.IsNullOrEmpty()) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
 
-            var secrets = new ClientSecrets { ClientId = _googlePhotosConfig.ClientId, ClientSecret = _googlePhotosConfig.ClientSecret };
+            var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
 
             FileDataStore? dataStore = null;
-            if (!string.IsNullOrWhiteSpace(_googlePhotosConfig.FileDataStoreFullPath))
-                dataStore = new FileDataStore(_googlePhotosConfig.FileDataStoreFullPath, true);
+            if (!string.IsNullOrWhiteSpace(_options.FileDataStoreFullPath))
+                dataStore = new FileDataStore(_options.FileDataStoreFullPath, true);
 
             _logger.LogDebug($"Requesting authorization...");
             var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 secrets,
                 GetScopes(),
-                _googlePhotosConfig.User,
+                _options.User,
                 CancellationToken.None,
                 dataStore);
 
@@ -149,8 +149,8 @@ namespace CasCap.Services
 
             string[] GetScopes()//todo: make extension method to convert any enum to string[] and move to CasCap.Common.Extensions
             {
-                var l = new List<string>(_googlePhotosConfig.Scopes.Length);
-                foreach (var scope in _googlePhotosConfig.Scopes)
+                var l = new List<string>(_options.Scopes.Length);
+                foreach (var scope in _options.Scopes)
                     if (dScopes.TryGetValue(scope, out var s))
                         l.Add(s);
                 return l.ToArray();

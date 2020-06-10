@@ -40,12 +40,12 @@ namespace CasCap
             //var configuration = new ConfigurationBuilder().Build();
             var loggerFactory = LoggerFactory.Create(builder =>
             {
-                //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
-            });
+    //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
+});
             var logger = loggerFactory.CreateLogger<GooglePhotosService>();
 
             //2) create a configuration object
-            var config = new GooglePhotosConfig
+            var options = new GooglePhotosOptions
             {
                 User = _user,
                 ClientId = _clientId,
@@ -55,8 +55,8 @@ namespace CasCap
             };
 
             //3) (Optional) display local OAuth 2.0 JSON file(s);
-            var path = config.FileDataStoreFullPath is null ? config.FileDataStoreFullPathDefault : config.FileDataStoreFullPath;
-            Console.WriteLine($"{nameof(config.FileDataStoreFullPath)}:\t{path}");
+            var path = options.FileDataStoreFullPath is null ? options.FileDataStoreFullPathDefault : options.FileDataStoreFullPath;
+            Console.WriteLine($"{nameof(options.FileDataStoreFullPath)}:\t{path}");
             var files = Directory.GetFiles(path);
             if (files.Length == 0)
                 Console.WriteLine($"\t- n/a this is probably the first time we have authenticated...");
@@ -68,10 +68,10 @@ namespace CasCap
             }
             //4) create a single HttpClient, this will be efficiently re-used by GooglePhotosService
             var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-            var client = new HttpClient(handler) { BaseAddress = new Uri(config.BaseAddress) };
+            var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
 
             //5) new-up the GooglePhotosService passing in the previous references (in lieu of dependency injection)
-            _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(config), client);
+            _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
             //6) perform a log-in and then run some tests
             if (!await _googlePhotosSvc.Login()) throw new Exception($"login failed");

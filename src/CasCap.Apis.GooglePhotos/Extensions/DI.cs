@@ -15,21 +15,21 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void AddGooglePhotos(this IServiceCollection services)
             => services.AddGooglePhotos(_ => { });
 
-        static string sectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosConfig)}";
+        static string sectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
 
-        public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosConfig> configure)
+        public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configure)
         {
-            services.AddSingleton<IConfigureOptions<GooglePhotosConfig>>(s =>
+            services.AddSingleton<IConfigureOptions<GooglePhotosOptions>>(s =>
             {
                 var configuration = s.GetService<IConfiguration?>();
-                return new ConfigureOptions<GooglePhotosConfig>(options => configuration?.Bind(sectionKey, options));
+                return new ConfigureOptions<GooglePhotosOptions>(options => configuration?.Bind(sectionKey, options));
             });
             services.AddHttpClient<GooglePhotosService>((s, client) =>
             {
                 var configuration = s.GetRequiredService<IConfiguration>();
-                var config = configuration.GetSection(sectionKey).Get<GooglePhotosConfig>();
-                config = config ?? new GooglePhotosConfig();//we use default BaseAddress if no config object injected in
-                client.BaseAddress = new Uri(config.BaseAddress);
+                var options = configuration.GetSection(sectionKey).Get<GooglePhotosOptions>();
+                options = options ?? new GooglePhotosOptions();//we use default BaseAddress if no config object injected in
+                client.BaseAddress = new Uri(options.BaseAddress);
                 client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));

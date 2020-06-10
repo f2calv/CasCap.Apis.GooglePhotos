@@ -3,7 +3,7 @@ using System.IO;
 namespace CasCap.Models
 {
     [Serializable]
-    public class GooglePhotosConfig
+    public class GooglePhotosOptions
     {
         /// <summary>
         /// The default endpoint for REST API requests, currently defaults to REST API v1.0
@@ -19,7 +19,7 @@ namespace CasCap.Models
         /// <summary>
         /// Security Scopes, i.e. access levels.
         /// Note: When changing scopes under the same User you must manually delete the local JSON file to clear the local cache,
-        /// you can use the GooglePhotosConfig.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
+        /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
         /// </summary>
         public GooglePhotos.Scope[] Scopes { get; set; } = default!;
 
