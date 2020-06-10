@@ -1,5 +1,6 @@
 # CasCap.Apis.GooglePhotos
-## *Unofficial* Google Photos REST API Wrapper for .NET
+
+## *Unofficial* Google Photos Library API wrapper library for .NET applications
 
 [azdo-badge]: https://dev.azure.com/f2calv/github/_apis/build/status/f2calv.CasCap.Apis.GooglePhotos?branchName=master
 [azdo-url]: https://dev.azure.com/f2calv/github/_build/latest?definitionId=7&branchName=master
@@ -11,11 +12,11 @@
 
 This is an *unofficial* Google Photos REST API library targeting .NET Standard 2.0.
 
-If you wish to interact with your Google Photos media items/albums then there are official [PHP and Java Client Libraries](https://developers.google.com/photos/library/guides/client-libraries). However if you're looking for an official .NET library then there are no options... 
+If you wish to interact with your Google Photos media items/albums then there are official [PHP and Java Client Libraries](https://developers.google.com/photos/library/guides/client-libraries). However if you're looking for an official .NET library then you are out of luck... until now :)
 
 The *CasCap.Apis.GooglePhotos* library wraps up all the available functionality of the Google Photos REST API in easy to consume method calls.
 
-Note: Before you jump in and use this library you should be aware that the Google Photos API has some key limitations. The biggest of these is that the API only allows the upload/addition of images/videos to the library, no edits or deletion are possible and have to be done manually via https://photos.google.com.
+Note: Before you jump in and use this library you should be aware that the [Google Photos Library API](https://developers.google.com/photos/library/reference/rest) has some key limitations. The biggest of these is that the API only allows the upload/addition of images/videos to the library, no edits or deletion are possible and have to be done manually via [https://photos.google.com](https://photos.google.com).
 
 ## Google Photos API Set-up
 
@@ -23,13 +24,12 @@ When you create your photos application, you must first create an OAuth login de
 
 1. Visit [Google API Console](https://console.developers.google.com/)
 2. Select 'Library' on the main menu;
-  - Search for 'Photos Library API', select it from the results and hit the Enable button.
+   - Search for 'Photos Library API', select it from the results and hit the Enable button.
 3. Select 'Credentials' on the main menu;
-  - Select 'Create Credentials' on the sub menu and pick 'OAuth client ID'
-  - Select 'Desktop' as the application type.
-  - Enter a suitable application name and hit the Create button.
-  - Copy/save the Client ID and Client Secret which are then displayed you will use these to authenticate with the GooglePhotosService.
-
+   - Select 'Create Credentials' on the sub menu and pick 'OAuth client ID'
+   - Select 'Desktop' as the application type.
+   - Enter a suitable application name and hit the Create button.
+   - Copy/save the Client ID and Client Secret which are then displayed you will use these to authenticate with the GooglePhotosService.
 
 ## Library Configuration/Usage
 
@@ -263,8 +263,9 @@ All API functions are exposed by the GooglePhotosService class. There are two sa
 
 - https://developers.google.com/photos
 - https://console.developers.google.com
-- [Photos Library API](https://developers.google.com/photos)
-- [Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
+- [Google Photos Library API](https://developers.google.com/photos)
+- [Google Photos Library API REST Reference](https://developers.google.com/photos/library/reference/rest)
+- [Google Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
 
 ### Feedback/Issues
 
