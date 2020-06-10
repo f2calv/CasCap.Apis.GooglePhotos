@@ -31,14 +31,14 @@ When you create your photos application, you must first create an OAuth login de
   - Copy/save the Client ID and Client Secret which are then displayed you will use these to authenticate with the GooglePhotosService.
 
 
-## CasCap.Apis.GooglePhotos Set-up/Configuration
+## Library Configuration/Usage
 
 Install the package into your project using NuGet ([see details here](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/)).
 
 For .NET Core applications using Dependency Injection the primary API usage is to call IServiceCollection.AddGooglePhotos in the Startup.cs ConfigureServices method.
 
 ```csharp
-//startup.cs
+//Startup.cs
 using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
@@ -55,9 +55,19 @@ There are 4 mandatory configuration options that must be passed;
 - User (your email address)
 - Google Client ID
 - Google Client Secret
-- Security Scopes
+- Authorisation Scopes
 
-The recommended method of setting these options would be via the appsettings.json file;
+There are 5 possible [authorisation scopes](https://developers.google.com/photos/library/guides/authorization) which designate the level of access you wish to give, these scopes can be combined if required;
+
+- ReadOnly
+- AppendOnly
+- AppCreatedData
+- Access
+- Sharing
+
+It is recommended to give the lowest access level possible, but if you wish to give your application unfettered access to your media collection then use the Access and Sharing combination.
+
+The recommended method of setting these mandatory options would be via the appsettings.json file;
 
 ```json5
 // appsettings.json
@@ -79,6 +89,7 @@ The recommended method of setting these options would be via the appsettings.jso
 
             // The ClientId and ClientSecret are provided by the Google Console after you register your own application.
             "ClientId": "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com",
+
             "ClientSecret": "abcabcabcabcabcabcabcabc",
         }
     }
@@ -89,7 +100,7 @@ The recommended method of setting these options would be via the appsettings.jso
 Alternatively you can pass the options into the AddGooglePhotos method;
 
 ```csharp
-//startup.cs
+//Startup.cs
 using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
@@ -107,9 +118,43 @@ public class Startup
 }
 ```
 
-The appsettings.json is the preferred option due to it's flexibility however the Client ID & Client Secret should be stored securely outside of source control i.e. [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager), [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) or some equivalent.
+The appsettings.json is the preferred option however the Client ID & Client Secret should be stored securely outside of source control via [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager), [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) or equivalent.
 
-If you don't use Dependency Injection you can new-up the GooglePhotosService manually and pass the configuration options, logger and HttpClient via the constructor;
+After calling AddGooglePhotos in the ConfigureServices method of Startup.cs you can then call upon the GooglePhotosService within your own injectable services like below.
+
+```csharp
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+namespace CasCap.Services
+{
+    public class MyPhotoService
+    {
+        readonly ILogger _logger;
+        readonly GooglePhotosService _googlePhotosSvc;
+
+        public MyPhotoService(ILogger<MyPhotoService> logger, GooglePhotosService googlePhotosSvc)
+        {
+            _logger = logger;
+            _googlePhotosSvc = googlePhotosSvc;
+        }
+
+        public async Task Login_And_List_Albums()
+        {
+            if (!await _googlePhotosSvc.Login())
+                throw new Exception($"login failed");
+
+            var albums = await _googlePhotosSvc.GetAlbums();
+            foreach (var album in albums)
+            {
+                _logger.LogInfo($"{album.id}\t{album.title}");
+            }
+        }
+    }
+}
+```
+
+If you don't use Dependency Injection you can new-up the GooglePhotosService manually and pass the mandatory configuration options, logger and HttpClient via the service constructor;
 
 ```csharp
 //MyPhotosClass.cs
@@ -159,61 +204,72 @@ public class MyPhotosClass
 }
 ```
 
+## Misc
 
+### Changing Users/Scopes
 
-### Authentication
+The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library will cache the OAuth 2.0 login information in a local JSON file which it will then read tokens from (and renew if necessary) on subsequent logins. The JSON file(s) are stored on a per-User basis in the Environment.SpecialFolder.ApplicationData folder. On Windows 10 this folder is located by default;
 
-[OAuth 2.0 authentication](https://developers.google.com/identity/protocols/oauth2) is handled by the official [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) NuGet package, for more information on this see the project site for [Google APIs client Library for .NET](https://github.com/googleapis/google-api-dotnet-client).
+- C:\Users\%User%\AppData\Roaming\Google.Apis.Auth
 
-There are 5 [authorisation scopes](https://developers.google.com/photos/library/guides/authorization) to choose which designate the level of access you wish to give to the photos library;
+If you change authentication scopes or User you must delete the JSON file and allow the [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library to re-create a new JSON file with the new scopes.
 
-- ReadOnly
-- AppendOnly
-- AppCreatedData
-- Access
-- Sharing
+You can change the location where these JSON token files are stored using the FileDataStoreFullPath property in the configuration options;
 
-Note: If you wish to give your application unfettered access to your photos then use both the Access and Sharing scopes.
+```csharp
+//Startup.cs
+using Microsoft.Extensions.DependencyInjection;
 
-#### FileDataStoreFullPath
-
-The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library will cache the OAuth 2.0 login information in a local JSON file which it will then read tokens from and renew if necessary on subsequent logins. The JSON file(s) are stored per-User at Environment.SpecialFolder.ApplicationData;
-
-- Windows, %user%/something
-- Linux ?
-- Mac ?
-
-If you change authentication scopes or User you should look for and delete the original file and allow the [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library to re-create a new JSON file with the new scopes.
-
-### Core Methods
-
-All API functions are exposed by the GoogleServices class
-todo: insert table of key methods?
-todo: self-documenting XML comments?
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddGooglePhotos(options =>
+        {
+            options.User = "your.email@mydomain.com";
+            options.Scopes = new[] { Scopes.ReadOnly };
+            options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
+            options.ClientSecret = "abcabcabcabcabcabcabcabc";
+            //change FileDataStoreFullPath
+            options.FileDataStoreFullPath = "c:/temp/GooglePhotos/"
+        });
+    }
+}
+```
 
 ### Sample Projects
 
-These are demonstration .NET Core applications;
+All API functions are exposed by the GooglePhotosService class. There are two sample .NET Core applications which show the basics on how to set-up/config/use the library;
 
-- [Simple Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/ConsoleApp) not using Dependency Injection.
-- [Advanced Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/GenericHost) using Configuration, Logging and Dependency Injection via the [].NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
+- [Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/ConsoleApp) no Dependency Injection.
+- [Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/GenericHost) using Configuration, Logging and Dependency Injection via the [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
 
+### Core Library Methods
 
-### Misc
+```csharp
 
-### Dependencies
+//insert demo methods here
 
-Key dependencies of this library;
+```
 
-- [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles all authentication.
-- [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) handles all HttpClient requests.
-[see details here](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/)
-  - Polly
+### Core Dependencies
+
+- [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles the [OAuth 2.0 authentication](https://developers.google.com/identity/protocols/oauth2), see the [project site](https://github.com/googleapis/google-api-dotnet-client).
+- [Polly](https://www.nuget.org/packages/Polly/) is a .NET resilience and transient-fault-handling library that handles retry, see [project site](https://github.com/App-vNext/Polly).
+- [CasCap.Common.Extensions](https://www.nuget.org/packages/CasCap.Common.Extensions/) contains a variety of extension methods to make my life easier!
+- [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) is a common library to handle all things HttpClient-related.
 
 ### Resources
 
 - https://developers.google.com/photos
+- https://console.developers.google.com
+- [Photos Library API](https://developers.google.com/photos)
+- [Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
 
-### Roadmap
+### Feedback/Issues
 
-- Create interface that works with other image/media services?
+Please post any issues or feedback [here](https://github.com/f2calv/CasCap.Apis.GooglePhotos/issues).
+
+### License
+
+CasCap.Apis.GooglePhotos is Copyright &copy; 2020 [Alex Vincent](https://github.com/f2calv) under the [MIT license](LICENSE).
