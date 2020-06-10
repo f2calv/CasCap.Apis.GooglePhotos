@@ -17,7 +17,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
         {
             Debug.WriteLine(title);
             Debug.WriteLine(title2);
-            var loginResult = await _googlePhotosSvc.Login();
+            var loginResult = await _googlePhotosSvc.LoginAsync();
             Assert.True(loginResult);
 
             //var albums = await _googlePhotosSvc.GetAlbums();
@@ -36,6 +36,14 @@ namespace CasCap.Apis.GooglePhotos.Tests
             //var album2 = await _googlePhotosSvc.CreateAlbum<Album>(title2);
             //Assert.NotNull(album2);
             //Assert.True(album2.title == title2);
+        }
+
+        [Fact]
+        public async Task EndToEnd()
+        {
+            var loginResult = await _googlePhotosSvc.LoginAsync();
+            Assert.True(loginResult);
+
         }
     }
 }
