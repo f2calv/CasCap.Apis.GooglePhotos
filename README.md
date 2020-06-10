@@ -141,7 +141,7 @@ namespace CasCap.Services
 
         public async Task Login_And_List_Albums()
         {
-            if (!await _googlePhotosSvc.Login())
+            if (!await _googlePhotosSvc.LoginAsync())
                 throw new Exception($"login failed");
 
             var albums = await _googlePhotosSvc.GetAlbums();
@@ -191,7 +191,7 @@ public class MyPhotosClass
         var googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
         //attempt to log-in
-        if (!await googlePhotosSvc.Login())
+        if (!await googlePhotosSvc.LoginAsync())
             throw new Exception($"login failed!");
 
         //get and list all albums

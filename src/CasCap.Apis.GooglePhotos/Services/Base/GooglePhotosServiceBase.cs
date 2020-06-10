@@ -94,7 +94,7 @@ namespace CasCap.Services
             _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
         }
 
-        public async Task<bool> Login(string User, string ClientId, string ClientSecret, GooglePhotos.Scope[] Scopes, string? FileDataStoreFullPath = null)
+        public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotos.Scope[] Scopes, string? FileDataStoreFullPath = null)
         {
             _options = new GooglePhotosOptions
             {
@@ -104,10 +104,10 @@ namespace CasCap.Services
                 Scopes = Scopes,
                 FileDataStoreFullPath = FileDataStoreFullPath
             };
-            return await Login();
+            return await LoginAsync();
         }
 
-        public async Task<bool> Login()
+        public async Task<bool> LoginAsync()
         {
             if (_options is null) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
             if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
@@ -160,13 +160,13 @@ namespace CasCap.Services
         #region https://photoslibrary.googleapis.com/v1/albums
 
         //https://photoslibrary.googleapis.com/v1/albums/{albumId}
-        public async Task<Album?> GetAlbum(string albumId)
+        public async Task<Album?> GetAlbumAsync(string albumId)
         {
             var res = await Get<Album>(string.Format(RequestUris.GET_album, albumId));
             return res.obj;
         }
 
-        public async Task<Album?> GetSharedAlbum(string sharedToken)
+        public async Task<Album?> GetSharedAlbumAsync(string sharedToken)
         {
             var res = await Get<Album>(string.Format(RequestUris.GET_sharedAlbum, sharedToken));
             return res.obj;
@@ -179,15 +179,15 @@ namespace CasCap.Services
         /// <param name="pageSize">Maximum number of albums to return in the response. Fewer albums might be returned than the specified number. The default pageSize is 20, the maximum is 50.</param>
         /// <param name="excludeNonAppCreatedData">If set, the results exclude media items that were not created by this app. Defaults to false (all albums are returned). This field is ignored if the photoslibrary.readonly.appcreateddata scope is used.</param>
         /// <returns></returns>
-        public Task<List<Album>> GetAlbums(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
+        public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
         {
-            return _GetAlbums(RequestUris.GET_albums, pageSize, excludeNonAppCreatedData);
+            return _GetAlbumsAsync(RequestUris.GET_albums, pageSize, excludeNonAppCreatedData);
         }
 
-        public Task<List<Album>> GetSharedAlbums(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)
-            => _GetAlbums(RequestUris.GET_sharedAlbums, pageSize, excludeNonAppCreatedData);
+        public Task<List<Album>> GetSharedAlbumsAsync(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)
+            => _GetAlbumsAsync(RequestUris.GET_sharedAlbums, pageSize, excludeNonAppCreatedData);
 
-        async Task<List<Album>> _GetAlbums(string requestUri, int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
+        async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
         {
             if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums) throw new ArgumentException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
             var albums = new List<Album>();
@@ -220,53 +220,53 @@ namespace CasCap.Services
             return url;
         }
 
-        public async Task<Album?> CreateAlbum(string title)
+        public async Task<Album?> CreateAlbumAsync(string title)
         {
             var req = new { album = new Album { title = title } };
             var res = await PostJson<Album>(RequestUris.POST_albums, req);
             return res.obj;
         }
 
-        public async Task<bool> AddMediaItemsToAlbum(string albumId, string[] mediaItemIds)
+        public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds)
         {
             var req = new { mediaItemIds };
             var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
             return res.statusCode == HttpStatusCode.OK;
         }
 
-        public async Task<bool> RemoveMediaItemsFromAlbum(string albumId, string[] mediaItemIds)
+        public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds)
         {
             var req = new { mediaItemIds };
             var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
             return res.statusCode == HttpStatusCode.OK;
         }
 
-        public async Task<enrichmentItem?> AddEnrichmentToAlbum(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
+        public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
         {
             var res = await PostJson<AddEnrichmentResponse>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition));
             return res.obj != null && res.obj.enrichmentItem != null ? res.obj.enrichmentItem : null;
         }
 
-        public async Task<ShareInfo?> ShareAlbum(string albumId, bool isCollaborative = true, bool isCommentable = true)
+        public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true)
         {
             var req = new { sharedAlbumOptions = new SharedAlbumOptions { isCollaborative = isCollaborative, isCommentable = isCommentable } };
             var res = await PostJson<sharedAlbumResponse>(string.Format(RequestUris.POST_share, albumId), req);
             return res.obj != null && res.obj.shareInfo != null ? res.obj.shareInfo : null;
         }
 
-        public async Task<bool> UnShareAlbum(string albumId)
+        public async Task<bool> UnShareAlbumAsync(string albumId)
         {
             var res = await PostJson<string>(string.Format(RequestUris.POST_unshare, albumId), new { });
             return res.statusCode == HttpStatusCode.OK;
         }
 
-        public async Task<Album?> JoinSharedAlbum(string shareToken)
+        public async Task<Album?> JoinSharedAlbumAsync(string shareToken)
         {
             var res = await PostJson<Album>(RequestUris.POST_sharedAlbums_join, new { shareToken });
             return res.obj;
         }
 
-        public async Task<bool> LeaveSharedAlbum(string shareToken)
+        public async Task<bool> LeaveSharedAlbumAsync(string shareToken)
         {
             var res = await PostJson<string>(RequestUris.POST_sharedAlbums_leave, new { shareToken });
             return res.statusCode == HttpStatusCode.OK;
@@ -274,7 +274,7 @@ namespace CasCap.Services
         #endregion
 
         #region https://photoslibrary.googleapis.com/v1/mediaItems
-        async Task<List<MediaItem>> _GetMediaItems(int? pageSize, bool excludeNonAppCreatedData, string requestUri)
+        async Task<List<MediaItem>> _GetMediaItemsAsync(int? pageSize, bool excludeNonAppCreatedData, string requestUri)
         {
             if (pageSize.HasValue && (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)) throw new ArgumentException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
@@ -296,7 +296,7 @@ namespace CasCap.Services
             return mediaItems;
         }
 
-        async Task<List<MediaItem>> _GetMediaItems(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri)
+        async Task<List<MediaItem>> _GetMediaItemsAsync(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri)
         {
             if (filters != null && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
             var mediaItems = new List<MediaItem>();
@@ -317,20 +317,20 @@ namespace CasCap.Services
             return mediaItems;
         }
 
-        public Task<List<MediaItem>> GetMediaItems(int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
+        public Task<List<MediaItem>> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
         {
-            return _GetMediaItems(pageSize, excludeNonAppCreatedData, RequestUris.GET_mediaItems);
+            return _GetMediaItemsAsync(pageSize, excludeNonAppCreatedData, RequestUris.GET_mediaItems);
         }
 
         //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
-        public async Task<MediaItem?> GetMediaItemById(string mediaItemId, bool excludeNonAppCreatedData = false)
+        public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
         {
             var res = await Get<MediaItem>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
             return res.obj;
         }
 
         //https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=media-item-id&mediaItemIds=another-media-item-id&mediaItemIds=incorrect-media-item-id
-        public async Task<mediaItemsGetResponse?> GetMediaItemsByIds(string[] mediaItemIds)
+        public async Task<mediaItemsGetResponse?> GetMediaItemsByIdsAsync(string[] mediaItemIds)
         {
             //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString here wait for .net 5
             //var queryParams = new Dictionary<string, string>(mediaItemIds.Length);
@@ -345,12 +345,12 @@ namespace CasCap.Services
             return res.obj;
         }
 
-        public Task<List<MediaItem>> GetMediaItemsByAlbum(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
+        public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
         {
-            return _GetMediaItems(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
+            return _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
         }
 
-        public Task<List<MediaItem>> GetMediaItemsByFilter(Filter filter)
+        public Task<List<MediaItem>> GetMediaItemsByFilterAsync(Filter filter)
         {
             //validate/tidy outgoing filter object
             var contentFilter = filter.contentFilter;
@@ -394,26 +394,26 @@ namespace CasCap.Services
                     _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
                 }
             }
-            return _GetMediaItems(null, 100, filter, false, RequestUris.POST_mediaItems_search);
+            return _GetMediaItemsAsync(null, 100, filter, false, RequestUris.POST_mediaItems_search);
         }
 
         //would need renaming if made public
-        Task<NewMediaItemResult?> AddMediaItem(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null)
-            => AddMediaItem(new UploadItem(uploadToken, fileName, description), albumId, albumPosition);
+        Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null)
+            => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition);
 
-        public Task<NewMediaItemResult?> AddMediaItem(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
+        public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
             GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-            => AddMediaItem(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+            => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
-        public Task<NewMediaItemResult?> AddMediaItem(UploadItem uploadItem, string? albumId = null,
+        public Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null,
             GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-            => AddMediaItem(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+            => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
         //would need renaming if made public
-        async Task<NewMediaItemResult?> AddMediaItem(UploadItem uploadItem, string? albumId = null, AlbumPosition? albumPosition = null)
+        async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null, AlbumPosition? albumPosition = null)
         {
             var newMediaItems = new List<UploadItem> { uploadItem };
-            var res = await AddMediaItems(newMediaItems, albumId, albumPosition);
+            var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
             if (res != null && !res.newMediaItemResults.IsNullOrEmpty())
                 return res.newMediaItemResults[0];
             else
@@ -423,12 +423,12 @@ namespace CasCap.Services
             }
         }
 
-        public Task<mediaItemsCreateResponse?> AddMediaItems(List<UploadItem> uploadItems, string? albumId = null,
+        public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
             GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-            => AddMediaItems(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+            => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
         //would need renaming if made public
-        async Task<mediaItemsCreateResponse?> AddMediaItems(List<UploadItem> uploadItems, string? albumId = null, AlbumPosition? albumPosition = null)
+        async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null, AlbumPosition? albumPosition = null)
         {
             if (uploadItems.IsNullOrEmpty())
                 throw new ArgumentNullException($"Invalid {nameof(uploadItems)} quantity, must be >= 1");
@@ -455,7 +455,7 @@ namespace CasCap.Services
         //https://developers.google.com/photos/library/guides/upload-media
         //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
         //https://developers.google.com/photos/library/guides/resumable-uploads
-        public async Task<string?> UploadMedia(string path, GooglePhotos.uploadType uploadType = GooglePhotos.uploadType.ResumableMultipart)
+        public async Task<string?> UploadMediaAsync(string path, GooglePhotos.uploadType uploadType = GooglePhotos.uploadType.ResumableMultipart)
         {
             if (!File.Exists(path)) throw new FileNotFoundException($"can't find {path}");
             var size = new FileInfo(path).Length;

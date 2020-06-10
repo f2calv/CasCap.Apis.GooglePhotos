@@ -23,9 +23,9 @@ namespace CasCap.Services
         {
             _logger.LogDebug($"starting {nameof(ExecuteAsync)}...");
 
-            if (!await _googlePhotosSvc.Login()) throw new Exception($"login failed");
+            if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed");
 
-            var albums = await _googlePhotosSvc.GetAlbums(50);
+            var albums = await _googlePhotosSvc.GetAlbumsAsync(50);
             foreach (var album in albums)
             {
                 Console.WriteLine($"{album.id}\t{album.title}");
