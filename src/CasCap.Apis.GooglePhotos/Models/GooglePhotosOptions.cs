@@ -21,7 +21,7 @@ namespace CasCap.Models
         /// Note: When changing scopes under the same User you must manually delete the local JSON file to clear the local cache,
         /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
         /// </summary>
-        public GooglePhotos.Scope[] Scopes { get; set; } = default!;
+        public GooglePhotosScope[] Scopes { get; set; } = default!;
 
         /// <summary>
         /// Google Client Id string, numerical/alphanumeric.

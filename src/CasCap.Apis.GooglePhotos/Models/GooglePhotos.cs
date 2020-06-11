@@ -4,127 +4,124 @@ using System;
 using System.Collections.Generic;
 namespace CasCap.Models
 {
-    public class GooglePhotos
+    public enum GooglePhotosScope
     {
-        public enum Scope
-        {
-            /// <summary>
-            /// Read access only.
-            /// 
-            /// List items from the library and all albums, access all media items and list albums owned by the user, including those which have been shared with them.
-            ///
-            /// For albums shared by the user, share properties are only returned if the.sharing scope has also been granted.
-            ///
-            /// The ShareInfo property for albums and the contributorInfo for mediaItems is only available if the.sharing scope has also been granted.
-            /// </summary>
-            ReadOnly,
+        /// <summary>
+        /// Read access only.
+        /// 
+        /// List items from the library and all albums, access all media items and list albums owned by the user, including those which have been shared with them.
+        ///
+        /// For albums shared by the user, share properties are only returned if the.sharing scope has also been granted.
+        ///
+        /// The ShareInfo property for albums and the contributorInfo for mediaItems is only available if the.sharing scope has also been granted.
+        /// </summary>
+        ReadOnly,
 
-            /// <summary>
-            /// Write access only.
-            ///
-            /// Access to upload bytes, create media items, create albums, and add enrichments.Only allows new media to be created in the user's library and in albums created by the app.
-            /// </summary>
-            AppendOnly,
+        /// <summary>
+        /// Write access only.
+        ///
+        /// Access to upload bytes, create media items, create albums, and add enrichments.Only allows new media to be created in the user's library and in albums created by the app.
+        /// </summary>
+        AppendOnly,
 
-            /// <summary>
-            /// Read access to media items and albums created by the developer. For more information, see Access media items and List library contents, albums, and media items.
-            ///
-            /// Intended to be requested together with the.appendonly scope.
-            /// </summary>
-            AppCreatedData,
+        /// <summary>
+        /// Read access to media items and albums created by the developer. For more information, see Access media items and List library contents, albums, and media items.
+        ///
+        /// Intended to be requested together with the.appendonly scope.
+        /// </summary>
+        AppCreatedData,
 
-            /// <summary>
-            /// Access to both the .appendonly and .readonly scopes. Doesn't include .sharing.
-            /// </summary>
-            Access,
+        /// <summary>
+        /// Access to both the .appendonly and .readonly scopes. Doesn't include .sharing.
+        /// </summary>
+        Access,
 
-            /// <summary>
-            /// Access to sharing calls.
-            ///
-            /// Access to create an album, share it, upload media items to it, and join a shared album.
-            /// </summary>   
-            Sharing
-        }
+        /// <summary>
+        /// Access to sharing calls.
+        ///
+        /// Access to create an album, share it, upload media items to it, and join a shared album.
+        /// </summary>   
+        Sharing
+    }
 
-        public enum uploadType
-        {
-            Simple,
-            ResumableSingle,
-            ResumableMultipart
-        }
+    public enum GooglePhotosUploadMethod
+    {
+        Simple,
+        ResumableSingle,
+        ResumableMultipart
+    }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum PositionType
-        {
-            /// <summary>
-            /// Default value if this enum isn't set.
-            /// </summary>
-            POSITION_TYPE_UNSPECIFIED,
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GooglePhotosPositionType
+    {
+        /// <summary>
+        /// Default value if this enum isn't set.
+        /// </summary>
+        POSITION_TYPE_UNSPECIFIED,
 
-            /// <summary>
-            /// At the beginning of the album.
-            /// </summary>
-            FIRST_IN_ALBUM,
+        /// <summary>
+        /// At the beginning of the album.
+        /// </summary>
+        FIRST_IN_ALBUM,
 
-            /// <summary>
-            /// At the end of the album.
-            /// </summary>
-            LAST_IN_ALBUM,
+        /// <summary>
+        /// At the end of the album.
+        /// </summary>
+        LAST_IN_ALBUM,
 
-            /// <summary>
-            /// After a media item.
-            /// </summary>
-            AFTER_MEDIA_ITEM,
+        /// <summary>
+        /// After a media item.
+        /// </summary>
+        AFTER_MEDIA_ITEM,
 
-            /// <summary>
-            /// After an enrichment item.
-            /// </summary>
-            AFTER_ENRICHMENT_ITEM
-        }
+        /// <summary>
+        /// After an enrichment item.
+        /// </summary>
+        AFTER_ENRICHMENT_ITEM
+    }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum mediaType
-        {
-            PHOTO,
-            VIDEO
-        }
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GooglePhotosMediaType
+    {
+        PHOTO,
+        VIDEO
+    }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum featureType
-        {
-            FAVORITES
-        }
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GooglePhotosFeatureType
+    {
+        FAVORITES
+    }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public enum contentCategoryType
-        {
-            ANIMALS,
-            ARTS,
-            BIRTHDAYS,
-            CITYSCAPES,
-            CRAFTS,
-            DOCUMENTS,
-            FASHION,
-            FLOWERS,
-            FOOD,
-            GARDENS,
-            HOLIDAYS,
-            HOUSES,
-            LANDMARKS,
-            LANDSCAPES,
-            NIGHT,
-            PEOPLE,
-            PERFORMANCES,
-            PETS,
-            RECEIPTS,
-            SCREENSHOTS,
-            SELFIES,
-            SPORT,
-            TRAVEL,
-            UTILITY,
-            WEDDINGS,
-            WHITEBOARDS
-        }
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GooglePhotosContentCategoryType
+    {
+        ANIMALS,
+        ARTS,
+        BIRTHDAYS,
+        CITYSCAPES,
+        CRAFTS,
+        DOCUMENTS,
+        FASHION,
+        FLOWERS,
+        FOOD,
+        GARDENS,
+        HOLIDAYS,
+        HOUSES,
+        LANDMARKS,
+        LANDSCAPES,
+        NIGHT,
+        PEOPLE,
+        PERFORMANCES,
+        PETS,
+        RECEIPTS,
+        SCREENSHOTS,
+        SELFIES,
+        SPORT,
+        TRAVEL,
+        UTILITY,
+        WEDDINGS,
+        WHITEBOARDS
     }
 
     public class Filter
@@ -139,8 +136,8 @@ namespace CasCap.Models
 
     public class contentFilter
     {
-        public GooglePhotos.contentCategoryType[]? includedContentCategories { get; set; }
-        public GooglePhotos.contentCategoryType[]? excludedContentCategories { get; set; }
+        public GooglePhotosContentCategoryType[]? includedContentCategories { get; set; }
+        public GooglePhotosContentCategoryType[]? excludedContentCategories { get; set; }
     }
 
     public class dateFilter
@@ -151,12 +148,12 @@ namespace CasCap.Models
 
     public class featureFilter
     {
-        public GooglePhotos.featureType[] includedFeatures { get; set; } = default!;
+        public GooglePhotosFeatureType[] includedFeatures { get; set; } = default!;
     }
 
     public class mediaTypeFilter
     {
-        public GooglePhotos.mediaType[] mediaTypes { get; set; } = default!;
+        public GooglePhotosMediaType[] mediaTypes { get; set; } = default!;
     }
 
     public class date
@@ -314,6 +311,13 @@ namespace CasCap.Models
             this.description = description;
         }
 
+        public UploadItem(string uploadToken, string? fileName)
+        {
+            if (string.IsNullOrWhiteSpace(uploadToken)) throw new ArgumentException($"{nameof(uploadToken)} is null or whitespace??");
+            this.uploadToken = uploadToken;
+            this.fileName = fileName;
+        }
+
         public string uploadToken { get; }
         public string? fileName { get; }
         public string? description { get; }
@@ -338,7 +342,7 @@ namespace CasCap.Models
     //https://developers.google.com/photos/library/reference/rest/v1/AlbumPosition
     public class AlbumPosition
     {
-        public GooglePhotos.PositionType position { get; set; }
+        public GooglePhotosPositionType position { get; set; }
 
         // Union field relative_item can be only one of the following:
         public string? relativeMediaItemId { get; set; }

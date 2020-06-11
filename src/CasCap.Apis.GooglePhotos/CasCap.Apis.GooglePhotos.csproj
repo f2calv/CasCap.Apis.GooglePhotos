@@ -33,13 +33,13 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.46.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="CasCap.Common.Net" Version="(0.0.28,1.0]" />
+    <PackageReference Include="CasCap.Common.Net" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
