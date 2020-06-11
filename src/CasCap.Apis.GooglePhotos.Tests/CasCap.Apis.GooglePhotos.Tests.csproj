@@ -33,9 +33,23 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.5" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Content Include="appsettings.Test.json" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="testdata\test.mp4" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test0.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test1.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test2.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test3.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test4.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test5.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test6.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test7.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test8.jpg" CopyToOutputDirectory="Always" />
+    <None Update="testdata\test9.jpg" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

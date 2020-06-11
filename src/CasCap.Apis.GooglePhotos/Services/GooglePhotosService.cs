@@ -38,21 +38,29 @@ namespace CasCap.Services
             return albums.FirstOrDefault(p => p.title.Equals(title, comparisonType));
         }
 
-        public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null)
+        public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
         {
-            var uploadToken = await UploadMediaAsync(path);
+            var uploadToken = await UploadMediaAsync(path, uploadMethod);
             if (!string.IsNullOrWhiteSpace(uploadToken))
                 return await AddMediaItemAsync(uploadToken!, Path.GetFileName(path), description, albumId);
             return null;
         }
 
-        public async Task<mediaItemsCreateResponse?> UploadMultiple(string path, string? searchPattern = null, string? albumId = null)
+        public Task<mediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+            => _UploadMultiple(filePaths, albumId, uploadMethod);
+
+        public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
         {
-            var paths = Directory.GetFiles(path, searchPattern);
-            var uploadItems = new List<UploadItem>(paths.Length);
-            foreach (var filePath in paths)
+            var filePaths = Directory.GetFiles(folderPath, searchPattern);
+            return _UploadMultiple(filePaths, albumId, uploadMethod);
+        }
+
+        async Task<mediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+        {
+            var uploadItems = new List<UploadItem>(filePaths.Length);
+            foreach (var filePath in filePaths)
             {
-                var uploadToken = await UploadMediaAsync(filePath);
+                var uploadToken = await UploadMediaAsync(filePath, uploadMethod);
                 if (!string.IsNullOrWhiteSpace(uploadToken))
                     uploadItems.Add(new UploadItem(uploadToken!, filePath));
                 //todo: raise photo uploaded event here

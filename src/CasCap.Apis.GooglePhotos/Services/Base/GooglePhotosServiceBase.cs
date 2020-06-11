@@ -468,7 +468,7 @@ namespace CasCap.Services
         //https://developers.google.com/photos/library/guides/upload-media
         //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
         //https://developers.google.com/photos/library/guides/resumable-uploads
-        public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadType uploadType = GooglePhotosUploadType.ResumableMultipart)
+        public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
         {
             if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
             var size = new FileInfo(path).Length;
@@ -481,9 +481,9 @@ namespace CasCap.Services
 
             var headers = new List<(string name, string value)>();
             headers.Add((X_Goog_Upload_Content_Type, GetMimeType()));
-            if (uploadType == GooglePhotosUploadType.Simple)
+            if (uploadMethod == GooglePhotosUploadMethod.Simple)
                 headers.Add((X_Goog_Upload_Protocol, "raw"));
-            else if (new[] { GooglePhotosUploadType.ResumableSingle, GooglePhotosUploadType.ResumableMultipart }.Contains(uploadType))
+            else if (new[] { GooglePhotosUploadMethod.ResumableSingle, GooglePhotosUploadMethod.ResumableMultipart }.Contains(uploadMethod))
             {
                 headers.Add((X_Goog_Upload_Command, "start"));
                 headers.Add((X_Goog_Upload_File_Name, Path.GetFileName(path)));
@@ -491,10 +491,10 @@ namespace CasCap.Services
                 headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));
             }
 
-            if (uploadType == GooglePhotosUploadType.Simple)
+            if (uploadMethod == GooglePhotosUploadMethod.Simple)
             {
                 var bytes = File.ReadAllBytes(path);
-                var tpl = await PostBytes<string>(RequestUris.uploads, uploadType == GooglePhotosUploadType.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
+                var tpl = await PostBytes<string>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
                 return tpl.obj;
             }
             else
@@ -511,7 +511,7 @@ namespace CasCap.Services
 
                 headers = new List<(string name, string value)>();
 
-                if (uploadType == GooglePhotosUploadType.ResumableSingle)
+                if (uploadMethod == GooglePhotosUploadMethod.ResumableSingle)
                 {
                     headers.Add((X_Goog_Upload_Offset, "0"));
                     headers.Add((X_Goog_Upload_Command, "upload, finalize"));
@@ -533,7 +533,7 @@ namespace CasCap.Services
 
                     return tpl.obj;
                 }
-                else if (uploadType == GooglePhotosUploadType.ResumableMultipart)
+                else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
                 {
                     var offset = 0;
                     var attempt = 0;
@@ -584,7 +584,7 @@ namespace CasCap.Services
                     }
                 }
                 else
-                    throw new NotSupportedException($"not supported upload type '{uploadType}'");
+                    throw new NotSupportedException($"not supported upload type '{uploadMethod}'");
             }
 
             string GetMimeType()

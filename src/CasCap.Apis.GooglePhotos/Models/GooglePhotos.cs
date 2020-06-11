@@ -44,7 +44,7 @@ namespace CasCap.Models
         Sharing
     }
 
-    public enum GooglePhotosUploadType
+    public enum GooglePhotosUploadMethod
     {
         Simple,
         ResumableSingle,

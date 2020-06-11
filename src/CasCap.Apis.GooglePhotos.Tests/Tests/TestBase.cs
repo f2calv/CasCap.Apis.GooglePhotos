@@ -31,13 +31,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
 
             //add services
-            services.AddGooglePhotos(options =>
-            {
-                options.User = "your.email@mydomain.com";
-                options.Scopes = new[] { Models.GooglePhotos.Scope.Access };
-                options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-                options.ClientSecret = "abcabcabcabcabcabcabcabc";
-            });
+            services.AddGooglePhotos();
 
             //retrieve services
             var serviceProvider = services.BuildServiceProvider();
