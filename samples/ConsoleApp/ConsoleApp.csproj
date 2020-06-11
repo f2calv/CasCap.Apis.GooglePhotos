@@ -6,11 +6,8 @@
     <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <ProjectReference Include="..\..\src\CasCap.Apis.GooglePhotos\CasCap.Apis.GooglePhotos.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="1.0.0" />
+  <ItemGroup>
+    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

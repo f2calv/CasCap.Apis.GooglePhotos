@@ -8,7 +8,7 @@
 [cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
 [cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
 
-[![Build Status][azdo-badge]][azdo-url] ![Code Coverage][azdo-coverage-url] [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+[![Build Status][azdo-badge]][azdo-url] <!-- ![Code Coverage][azdo-coverage-url] --> [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
 
 This is an _unofficial_ Google Photos REST API library targeting .NET Standard 2.0.
 
