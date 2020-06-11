@@ -1,12 +1,8 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Models;
+﻿using CasCap.Models;
 using CasCap.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -40,8 +36,8 @@ namespace CasCap
             //var configuration = new ConfigurationBuilder().Build();
             var loggerFactory = LoggerFactory.Create(builder =>
             {
-    //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
-});
+                //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
+            });
             var logger = loggerFactory.CreateLogger<GooglePhotosService>();
 
             //2) create a configuration object
@@ -51,7 +47,7 @@ namespace CasCap
                 ClientId = _clientId,
                 ClientSecret = _clientSecret,
                 //FileDataStoreFullPath = _testFolder,
-                Scopes = new[] { GooglePhotos.Scope.Access, GooglePhotos.Scope.Sharing },//Access+Sharing == full access
+                Scopes = new[] { GooglePhotosScope.Access, GooglePhotosScope.Sharing },//Access+Sharing == full access
             };
 
             //3) (Optional) display local OAuth 2.0 JSON file(s);
@@ -73,255 +69,29 @@ namespace CasCap
             //5) new-up the GooglePhotosService passing in the previous references (in lieu of dependency injection)
             _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
-            //6) perform a log-in and then run some tests
-            if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed");
+            //6) log-in
+            if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed!");
 
-            await TestRun();
+            //get existing/create new album
+            var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
+            var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle);
+            if (album is null) throw new Exception("album creation failed!");
+            Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
 
-            //todo: move all tests into the unit tests?
-            //todo: leave only simple tests here OR end to end of everything - yes better!
-        }
+            //upload single media item and assign to album
+            var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id);
+            if (mediaItem is null) throw new Exception("media item upload failed!");
+            Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
-        static async Task TestRun()
-        {
-            //test each upload method
-            foreach (var type in Utils.GetAllItems<GooglePhotos.uploadType>())
+            //retrieve all media items in the album
+            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+            if (albumMediaItems is null) throw new Exception("retrieve media items by album id failed!");
+            var i = 1;
+            foreach (var item in albumMediaItems)
             {
-                Console.WriteLine($"type={type}");
-                var path = $"{_testFolder}test.mp4";
-                var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, type);
-                if (string.IsNullOrWhiteSpace(uploadToken)) throw new Exception($"upload of '{path}' failed!");
-                var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
-                Console.WriteLine(uploadToken);
-                //Debugger.Break();
+                Console.WriteLine($"{i}\t{item.filename}\t{item.mediaMetadata.width}x{item.mediaMetadata.height}");
+                i++;
             }
-
-            if (1 == 2)
-            {
-                //upload single photo, assign to album
-                var myalbie = await _googlePhotosSvc.GetOrCreateAlbumByTitleAsync("flipper");
-                await UploadSingle(myalbie.id);
-
-                //upload single photo
-                await UploadSingle();
-
-                async Task UploadSingle(string albumId = null)
-                {
-                    var path = $"{_testFolder}test1.jpg";
-                    var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path);//todo:merge this and the below into a better helper method
-                    if (string.IsNullOrWhiteSpace(uploadToken)) throw new Exception($"upload of '{path}' failed!");
-                    Console.WriteLine(uploadToken);
-                    var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, $"this came from {path}", albumId);
-                    Console.WriteLine(newMediaItemResult.ToJSON());
-                    Console.WriteLine();
-                }
-            }
-            //todo: pretty print json with highlighting
-
-            if (1 == 2)
-            {
-                //upload multiple photos
-                await UploadMultiple();
-
-                //upload multiple photos, assign to album
-                var myalb = await _googlePhotosSvc.GetOrCreateAlbumByTitleAsync("flopsey");
-                await UploadMultiple(myalb.id);
-
-                async Task UploadMultiple(string albumId = null)
-                {
-                    var paths = Directory.GetFiles(_testFolder, "*.jpg");
-                    var uploadItems = new List<UploadItem>(paths.Length);
-                    foreach (var path in paths)
-                    {
-                        var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path);
-                        if (string.IsNullOrWhiteSpace(uploadToken)) throw new Exception($"upload of '{path}' failed!");
-                        Console.WriteLine(uploadToken);
-                        uploadItems.Add(new UploadItem(uploadToken, path, $"this came from {path}"));
-                        //raise photo uploaded event here
-                    }
-                    var newMediaItemResults = await _googlePhotosSvc.AddMediaItemsAsync(uploadItems, albumId);
-                    Console.WriteLine(newMediaItemResults.ToJSON(Formatting.Indented));
-                    Console.WriteLine();
-                }
-            }
-
-            //await _googlePhotosSvc.CreateAlbum<string>("wibble");
-            //await _googlePhotosSvc.CreateAlbum<string>("wobble");
-
-            //list albums and media items within those albums
-            if (1 == 2)
-            {
-                var albums = await _googlePhotosSvc.GetAlbumsAsync(pageSize: 5);
-                foreach (var album in albums)
-                {
-                    Console.WriteLine($"{album.title}\t{album.mediaItemsCount};");
-                    var mediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id, pageSize: 25);
-                    var i = 1;
-                    foreach (var mediaItem in mediaItems)
-                    {
-                        Console.WriteLine($"{i}\t{mediaItem.filename}\t{mediaItem.mediaMetadata.photo.ToJSON()};");
-                        i++;
-                    }
-                }
-                Console.WriteLine();
-            }
-
-
-            //list all media items
-            if (1 == 2)
-            {
-                var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize: 25);
-                foreach (var mediaItem in mediaItems)
-                    Console.WriteLine($"{mediaItem.filename}\t{mediaItem.mediaMetadata.photo.ToJSON()};");
-
-                //var mediaItems2 = await _googlePhotosSvc.GetMediaItems();
-
-                var mi = await _googlePhotosSvc.GetMediaItemByIdAsync(mediaItems[0].id);
-                Console.WriteLine(mi.ToJSON());
-
-                var ids = mediaItems.Select(p => p.id).ToList();
-                ids.Add("invalid-id");
-                var mis = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
-                foreach (var _mi in mis.mediaItemResults)
-                {
-                    if (_mi.mediaItem != null)
-                        Console.WriteLine(_mi.mediaItem.ToJSON());
-                    else
-                        Console.WriteLine(_mi.status.ToJSON());
-                }
-                Console.WriteLine();
-            }
-
-            if (1 == 2)
-            {
-                contentFilter contentFilter = null;
-                if (1 == 2)
-                    contentFilter = new contentFilter
-                    {
-                        includedContentCategories = new[] { GooglePhotos.contentCategoryType.PEOPLE },
-                        //includedContentCategories = new[] { GooglePhotos.contentCategoryType.WEDDINGS },
-                        //excludedContentCategories = new[] { GooglePhotos.contentCategoryType.PEOPLE }
-                    };
-
-                dateFilter dateFilter = null;
-                if (1 == 1)
-                    dateFilter = new dateFilter
-                    {
-                        //dates = new date[] { new date { year = 2020 } },
-                        //dates = new date[] { new date { year = 2016 } },
-                        //dates = new date[] { new date { year = 2016, month = 12 } },
-                        //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
-                        ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-                    };
-                mediaTypeFilter mediaTypeFilter = null;
-                if (1 == 2)
-                    mediaTypeFilter = new mediaTypeFilter
-                    {
-                        mediaTypes = new[] { GooglePhotos.mediaType.PHOTO }
-                        //mediaTypes = new[] { GooglePhotos.mediaType.VIDEO }
-                    };
-                featureFilter featureFilter = null;
-                if (1 == 1)
-                    featureFilter = new featureFilter
-                    {
-                        includedFeatures = new[] { GooglePhotos.featureType.FAVORITES }
-                    };
-                var filter = new Filter
-                {
-                    contentFilter = contentFilter,
-                    dateFilter = dateFilter,
-                    mediaTypeFilter = mediaTypeFilter,
-                    featureFilter = featureFilter,
-
-                    excludeNonAppCreatedData = false,
-                    includeArchivedMedia = false,
-                };
-                Console.WriteLine(filter.ToJSON());
-                var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter);
-                foreach (var result in searchResults)
-                {
-                    Console.WriteLine($"{result.filename}");
-                }
-            }
-
-            ///big end to end test
-            if (1 == 2)
-            {
-                var path = $"{_testFolder}test.jpg";
-                //upload image
-                var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path);
-                if (string.IsNullOrWhiteSpace(uploadToken)) throw new Exception($"upload of '{path}' failed!");
-
-                //make a mediaItem (but no album)
-                var mediaItem = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, "my test");
-
-                //create empty album
-                var newAlb = await _googlePhotosSvc.CreateAlbumAsync("karneval");
-
-                var enrichmentId1 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(newAlb.id,
-                    new NewEnrichmentItem("text enrichment 123"),
-                    new AlbumPosition { position = GooglePhotos.PositionType.FIRST_IN_ALBUM }
-                    );
-
-                //add to album
-                if (!await _googlePhotosSvc.AddMediaItemsToAlbumAsync(newAlb.id, new[] { mediaItem.mediaItem.id }))
-                    throw new Exception($"{nameof(_googlePhotosSvc.AddMediaItemsToAlbumAsync)} failed");
-
-                //todo: test positioning
-
-                var enrichmentId2 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(newAlb.id,
-                    new NewEnrichmentItem("another text enrichment"),
-                    new AlbumPosition { position = GooglePhotos.PositionType.AFTER_MEDIA_ITEM, relativeMediaItemId = mediaItem.mediaItem.id }
-                    );
-                //get album contents
-                var mediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(newAlb.id);
-                if (mediaItems.Count != 1)
-                    throw new Exception($"{nameof(_googlePhotosSvc.GetMediaItemsByAlbumAsync)} failed");
-
-                //remove from album
-                if (!await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(newAlb.id, new[] { mediaItem.mediaItem.id }))
-                    throw new Exception($"{nameof(_googlePhotosSvc.RemoveMediaItemsFromAlbumAsync)} failed");
-
-                //get album contents
-                mediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(newAlb.id);
-                if (mediaItems.Count != 0)
-                    throw new Exception($"{ nameof(_googlePhotosSvc.GetMediaItemsByAlbumAsync) } failed");
-
-                //re-add same pic to album
-                await _googlePhotosSvc.AddMediaItemsToAlbumAsync(newAlb.id, new[] { mediaItem.mediaItem.id });
-
-                //change album to allow sharing
-                var shareInfo = await _googlePhotosSvc.ShareAlbumAsync(newAlb.id);
-                if (shareInfo is null || string.IsNullOrWhiteSpace(shareInfo.shareToken))
-                    throw new Exception($"{ nameof(_googlePhotosSvc.ShareAlbumAsync) } failed");
-
-                var sharedAlbums = await _googlePhotosSvc.GetSharedAlbumsAsync();
-                if (sharedAlbums.Count != 1)
-                    throw new Exception($"{ nameof(_googlePhotosSvc.GetSharedAlbumsAsync) } failed");
-
-                var sharedAlb1a = await _googlePhotosSvc.GetAlbumAsync(newAlb.id);
-                if (sharedAlb1a is null)
-                    throw new Exception($"{ nameof(_googlePhotosSvc.GetAlbumAsync) } failed");
-                var sharedAlb1b = await _googlePhotosSvc.GetSharedAlbumAsync(shareInfo.shareToken);
-                if (sharedAlb1b is null)
-                    throw new Exception($"{ nameof(_googlePhotosSvc.GetSharedAlbumAsync) } failed");
-
-                //unshare the album
-                var unshare = await _googlePhotosSvc.UnShareAlbumAsync(newAlb.id);
-            }
-
-            //test equality
-            if (1 == 2)
-            {
-                //Assert.NotNull(albums);
-                var album = await _googlePhotosSvc.GetOrCreateAlbumByTitleAsync("some new title");
-
-                var album2 = await _googlePhotosSvc.GetAlbumAsync(album.id);
-
-                Console.WriteLine(album.Equals(album2));
-                Console.WriteLine(object.ReferenceEquals(album, album2));
-            }
-            Console.WriteLine();
         }
     }
 }
