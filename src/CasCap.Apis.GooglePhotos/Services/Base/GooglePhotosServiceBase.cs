@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -73,13 +74,13 @@ namespace CasCap.Services
             { ".wmv", "video/x-ms-wmv" },
         };
 
-        static Dictionary<GooglePhotos.Scope, string> dScopes = new Dictionary<GooglePhotos.Scope, string>
+        static Dictionary<GooglePhotosScope, string> dScopes = new Dictionary<GooglePhotosScope, string>
         {
-            { GooglePhotos.Scope.ReadOnly , "https://www.googleapis.com/auth/photoslibrary.readonly"},
-            { GooglePhotos.Scope.AppendOnly , "https://www.googleapis.com/auth/photoslibrary.appendonly"},
-            { GooglePhotos.Scope.AppCreatedData , "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata"},
-            { GooglePhotos.Scope.Access , "https://www.googleapis.com/auth/photoslibrary"},
-            { GooglePhotos.Scope.Sharing , "https://www.googleapis.com/auth/photoslibrary.sharing"}
+            { GooglePhotosScope.ReadOnly , "https://www.googleapis.com/auth/photoslibrary.readonly"},
+            { GooglePhotosScope.AppendOnly , "https://www.googleapis.com/auth/photoslibrary.appendonly"},
+            { GooglePhotosScope.AppCreatedData , "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata"},
+            { GooglePhotosScope.Access , "https://www.googleapis.com/auth/photoslibrary"},
+            { GooglePhotosScope.Sharing , "https://www.googleapis.com/auth/photoslibrary.sharing"}
         };
 
         GooglePhotosOptions? _options;
@@ -94,7 +95,7 @@ namespace CasCap.Services
             _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
         }
 
-        public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotos.Scope[] Scopes, string? FileDataStoreFullPath = null)
+        public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPath = null)
         {
             _options = new GooglePhotosOptions
             {
@@ -402,11 +403,11 @@ namespace CasCap.Services
             => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition);
 
         public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
-            GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
+            GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
             => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
         public Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null,
-            GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
+            GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
             => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
         //would need renaming if made public
@@ -424,7 +425,7 @@ namespace CasCap.Services
         }
 
         public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
-            GooglePhotos.PositionType positionType = GooglePhotos.PositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
+            GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
             => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
         //would need renaming if made public
@@ -452,12 +453,24 @@ namespace CasCap.Services
         }
         #endregion
 
+        const string X_Goog_Upload_Content_Type = "X-Goog-Upload-Content-Type";
+        const string X_Goog_Upload_Protocol = "X-Goog-Upload-Protocol";
+        const string X_Goog_Upload_Command = "X-Goog-Upload-Command";
+        const string X_Goog_Upload_File_Name = "X-Goog-Upload-File-Name";
+        const string X_Goog_Upload_Raw_Size = "X-Goog-Upload-Raw-Size";
+        const string X_Goog_Upload_URL = "X-Goog-Upload-URL";
+        const string X_Goog_Upload_Offset = "X-Goog-Upload-Offset";
+        const string X_Goog_Upload_Status = "X-Goog-Upload-Status";
+        const string X_Goog_Upload_Chunk_Granularity = "X-Goog-Upload-Chunk-Granularity";
+        const string X_Goog_Upload_Size_Received = "X-Goog-Upload-Size-Received";
+
+        //todo: refactor this method when time, it's a bit of a mess :/
         //https://developers.google.com/photos/library/guides/upload-media
         //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
         //https://developers.google.com/photos/library/guides/resumable-uploads
-        public async Task<string?> UploadMediaAsync(string path, GooglePhotos.uploadType uploadType = GooglePhotos.uploadType.ResumableMultipart)
+        public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadType uploadType = GooglePhotosUploadType.ResumableMultipart)
         {
-            if (!File.Exists(path)) throw new FileNotFoundException($"can't find {path}");
+            if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
             var size = new FileInfo(path).Length;
 
             if (size < 1) throw new Exception($"media file {path} has no data?");
@@ -467,38 +480,41 @@ namespace CasCap.Services
                 throw new NotSupportedException($"Media file {path} is too big for known upload limits of {maxSizeVideoBytes} bytes!");
 
             var headers = new List<(string name, string value)>();
-            headers.Add(("X-Goog-Upload-Content-Type", GetMimeType()));
-            if (uploadType == GooglePhotos.uploadType.Simple)
-                headers.Add(("X-Goog-Upload-Protocol", "raw"));
-            else if (new[] { GooglePhotos.uploadType.ResumableSingle, GooglePhotos.uploadType.ResumableMultipart }.Contains(uploadType))
+            headers.Add((X_Goog_Upload_Content_Type, GetMimeType()));
+            if (uploadType == GooglePhotosUploadType.Simple)
+                headers.Add((X_Goog_Upload_Protocol, "raw"));
+            else if (new[] { GooglePhotosUploadType.ResumableSingle, GooglePhotosUploadType.ResumableMultipart }.Contains(uploadType))
             {
-                headers.Add(("X-Goog-Upload-Command", "start"));
-                headers.Add(("X-Goog-Upload-File-Name", Path.GetFileName(path)));
-                headers.Add(("X-Goog-Upload-Protocol", "resumable"));
-                headers.Add(("X-Goog-Upload-Raw-Size", size.ToString()));
+                headers.Add((X_Goog_Upload_Command, "start"));
+                headers.Add((X_Goog_Upload_File_Name, Path.GetFileName(path)));
+                headers.Add((X_Goog_Upload_Protocol, "resumable"));
+                headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));
             }
 
-            if (uploadType == GooglePhotos.uploadType.Simple)
+            if (uploadType == GooglePhotosUploadType.Simple)
             {
                 var bytes = File.ReadAllBytes(path);
-                var tpl = await PostBytes<string>(RequestUris.uploads, uploadType == GooglePhotos.uploadType.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
+                var tpl = await PostBytes<string>(RequestUris.uploads, uploadType == GooglePhotosUploadType.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
                 return tpl.obj;
             }
             else
             {
                 var tpl = await PostBytes<string>(RequestUris.uploads, Array.Empty<byte>(), headers: headers);
-                tpl.responseHeaders.TryGetValues("X-Goog-Upload-URL", out var var1);
-                var Upload_URL = var1.FirstOrDefault();
-                Console.WriteLine($"{Upload_URL}={Upload_URL}");
-                tpl.responseHeaders.TryGetValues("X-Goog-Upload-Chunk-Granularity", out var var2);
-                var Upload_Chunk_Granularity = int.Parse(var2.FirstOrDefault());
+                var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+
+                var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL);
+                if (Upload_URL is null) throw new Exception($"");
+                //Debug.WriteLine($"{Upload_URL}={Upload_URL}");
+                var sUpload_Chunk_Granularity = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Chunk_Granularity);
+                if (int.TryParse(sUpload_Chunk_Granularity, out var Upload_Chunk_Granularity) && Upload_Chunk_Granularity <= 0)
+                    throw new Exception($"invalid {X_Goog_Upload_Chunk_Granularity}!");
 
                 headers = new List<(string name, string value)>();
 
-                if (uploadType == GooglePhotos.uploadType.ResumableSingle)
+                if (uploadType == GooglePhotosUploadType.ResumableSingle)
                 {
-                    headers.Add(("X-Goog-Upload-Offset", "0"));
-                    headers.Add(("X-Goog-Upload-Command", "upload, finalize"));
+                    headers.Add((X_Goog_Upload_Offset, "0"));
+                    headers.Add((X_Goog_Upload_Command, "upload, finalize"));
 
                     //todo: for testing override bytes with a smaller value than expected
                     var bytes = File.ReadAllBytes(path);
@@ -507,19 +523,17 @@ namespace CasCap.Services
                     {
                         //we were interrupted so query the status of the last upload
                         headers = new List<(string name, string value)>();
-                        headers.Add(("X-Goog-Upload-Command", "query"));
+                        headers.Add((X_Goog_Upload_Command, "query"));
 
                         tpl = await PostBytes<string>(Upload_URL, bytes, headers: headers);
 
-                        tpl.responseHeaders.TryGetValues("X-Goog-Upload-Status", out var var3);
-                        //var Status = var1.FirstOrDefault();
-                        tpl.responseHeaders.TryGetValues("X-Goog-Upload-Size-Received", out var var4);
-                        //var bytesReceived = int.Parse(var4.FirstOrDefault());
+                        status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                        var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                     }
 
                     return tpl.obj;
                 }
-                else if (uploadType == GooglePhotos.uploadType.ResumableMultipart)
+                else if (uploadType == GooglePhotosUploadType.ResumableMultipart)
                 {
                     var offset = 0;
                     var attempt = 0;
@@ -537,8 +551,8 @@ namespace CasCap.Services
                             var lastChunk = offset + Upload_Chunk_Granularity >= size;
 
                             headers = new List<(string name, string value)>();
-                            headers.Add(("X-Goog-Upload-Command", $"upload{(lastChunk ? ", finalize" : string.Empty)}"));
-                            headers.Add(("X-Goog-Upload-Offset", offset.ToString()));
+                            headers.Add((X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"));
+                            headers.Add((X_Goog_Upload_Offset, offset.ToString()));
 
                             //todo: need to test resuming failed uploads
                             var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
@@ -548,17 +562,15 @@ namespace CasCap.Services
                             {
                                 //we were interrupted so query the status of the last upload
                                 headers = new List<(string name, string value)>();
-                                headers.Add(("X-Goog-Upload-Command", "query"));
+                                headers.Add((X_Goog_Upload_Command, "query"));
                                 _logger.LogDebug($"");
                                 tpl = await PostBytes<string>(Upload_URL, Array.Empty<byte>(), headers: headers);
 
-                                tpl.responseHeaders.TryGetValues("X-Goog-Upload-Status", out var var3);
-                                var Status = var1.FirstOrDefault();
-                                //Console.WriteLine($"Status={Status}");
-                                tpl.responseHeaders.TryGetValues("X-Goog-Upload-Size-Received", out var var4);
-                                var bytesReceived = int.Parse(var4.FirstOrDefault());
-                                //Console.WriteLine($"bytesReceived={bytesReceived}");
-                                Console.WriteLine($"retryCount={attempt}\ttrying upload again...");
+                                status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                                //Debug.WriteLine($"status={status}");
+                                var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                                //Debug.WriteLine($"bytesReceived={bytesReceived}");
+                                Debug.WriteLine($"retryCount={attempt}\ttrying upload again...");
                             }
                             else
                             {
@@ -588,19 +600,19 @@ namespace CasCap.Services
             }
         }
 
-        AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotos.PositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
+        AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
         {
             AlbumPosition? albumPosition = null;
             if (string.IsNullOrWhiteSpace(albumId)
-                && (positionType != GooglePhotos.PositionType.LAST_IN_ALBUM || !string.IsNullOrWhiteSpace(relativeMediaItemId) || !string.IsNullOrWhiteSpace(relativeEnrichmentItemId)))
+                && (positionType != GooglePhotosPositionType.LAST_IN_ALBUM || !string.IsNullOrWhiteSpace(relativeMediaItemId) || !string.IsNullOrWhiteSpace(relativeEnrichmentItemId)))
                 throw new NotSupportedException($"cannot specify position without including an {nameof(albumId)}!");
             if (!string.IsNullOrWhiteSpace(relativeMediaItemId) && !string.IsNullOrWhiteSpace(relativeEnrichmentItemId))
                 throw new NotSupportedException($"cannot specify {nameof(relativeMediaItemId)} and {nameof(relativeEnrichmentItemId)} at the same time!");
-            if (positionType == GooglePhotos.PositionType.LAST_IN_ALBUM || positionType == GooglePhotos.PositionType.POSITION_TYPE_UNSPECIFIED)
+            if (positionType == GooglePhotosPositionType.LAST_IN_ALBUM || positionType == GooglePhotosPositionType.POSITION_TYPE_UNSPECIFIED)
             {
                 //the default so ignore
             }
-            else if (positionType == GooglePhotos.PositionType.FIRST_IN_ALBUM)
+            else if (positionType == GooglePhotosPositionType.FIRST_IN_ALBUM)
                 albumPosition = new AlbumPosition { position = positionType };
             else if (!string.IsNullOrWhiteSpace(relativeMediaItemId))
                 albumPosition = new AlbumPosition { position = positionType, relativeMediaItemId = relativeMediaItemId };
