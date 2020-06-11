@@ -39,7 +39,7 @@
     <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="CasCap.Common.Net" Version="1.0.5" />
+    <PackageReference Include="CasCap.Common.Net" Version="1.0.6" />
   </ItemGroup>
 
 </Project>
