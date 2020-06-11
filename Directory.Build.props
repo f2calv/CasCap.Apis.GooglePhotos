@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>Alex Vincent</Authors>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
 </Project>
