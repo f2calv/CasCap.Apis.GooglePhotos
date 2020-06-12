@@ -255,6 +255,10 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 - [Polly](https://www.nuget.org/packages/Polly/) is a .NET resilience and transient-fault-handling library that handles retry, see [project site](https://github.com/App-vNext/Polly).
 - [CasCap.Common.Extensions](https://www.nuget.org/packages/CasCap.Common.Extensions/) and [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
 
+### Misc Tips
+
+- The [NuGet package](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/) includes [SourceLink](https://github.com/dotnet/sourcelink) which enables you to jump inside the library and debug the API yourself. By default Visual Studio 2017/2019 does not allow this and will pop up an message "You are debugging a Release build of...", to disable this message go into the Visual Studio debugging options and un-check the 'Just My Code' option (menu path, Tools > Options > Debugging).
+
 ### Resources
 
 - https://developers.google.com/photos
