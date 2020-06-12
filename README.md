@@ -218,7 +218,7 @@ The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library
 
 If you change the authentication scopes for a User you must delete the JSON file and allow the [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library to re-auth and re-create a new JSON file with the new scopes.
 
-You can change the location where these JSON token files are stored at using the FileDataStoreFullPath property in the configuration options;
+You can change the location where these JSON token files are stored at using the FileDataStoreFullPathOverride property in the configuration options;
 
 ```csharp
 //Startup.cs
@@ -234,8 +234,8 @@ public class Startup
             options.Scopes = new[] { GooglePhotosScope.ReadOnly };
             options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
             options.ClientSecret = "abcabcabcabcabcabcabcabc";
-            //change FileDataStoreFullPath
-            options.FileDataStoreFullPath = "c:/temp/GooglePhotos/"
+            //change FileDataStoreFullPathOverride
+            options.FileDataStoreFullPathOverride = "c:/temp/GooglePhotos/"
         });
     }
 }

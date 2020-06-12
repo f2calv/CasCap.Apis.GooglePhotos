@@ -46,13 +46,13 @@ namespace CasCap
                 User = _user,
                 ClientId = _clientId,
                 ClientSecret = _clientSecret,
-                //FileDataStoreFullPath = _testFolder,
+                //FileDataStoreFullPathOverride = _testFolder,
                 Scopes = new[] { GooglePhotosScope.Access, GooglePhotosScope.Sharing },//Access+Sharing == full access
             };
 
             //3) (Optional) display local OAuth 2.0 JSON file(s);
-            var path = options.FileDataStoreFullPath is null ? options.FileDataStoreFullPathDefault : options.FileDataStoreFullPath;
-            Console.WriteLine($"{nameof(options.FileDataStoreFullPath)}:\t{path}");
+            var path = options.FileDataStoreFullPathOverride is null ? options.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
+            Console.WriteLine($"{nameof(options.FileDataStoreFullPathOverride)}:\t{path}");
             var files = Directory.GetFiles(path);
             if (files.Length == 0)
                 Console.WriteLine($"\t- n/a this is probably the first time we have authenticated...");

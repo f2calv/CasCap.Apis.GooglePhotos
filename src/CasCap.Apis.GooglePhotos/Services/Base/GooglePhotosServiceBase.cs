@@ -95,7 +95,7 @@ namespace CasCap.Services
             _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
         }
 
-        public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPath = null)
+        public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null)
         {
             _options = new GooglePhotosOptions
             {
@@ -103,8 +103,14 @@ namespace CasCap.Services
                 ClientId = ClientId,
                 ClientSecret = ClientSecret,
                 Scopes = Scopes,
-                FileDataStoreFullPath = FileDataStoreFullPath
+                FileDataStoreFullPathOverride = FileDataStoreFullPathOverride
             };
+            return await LoginAsync();
+        }
+
+        public async Task<bool> LoginAsync(GooglePhotosOptions options)
+        {
+            _options = options ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
             return await LoginAsync();
         }
 
@@ -119,8 +125,8 @@ namespace CasCap.Services
             var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
 
             FileDataStore? dataStore = null;
-            if (!string.IsNullOrWhiteSpace(_options.FileDataStoreFullPath))
-                dataStore = new FileDataStore(_options.FileDataStoreFullPath, true);
+            if (!string.IsNullOrWhiteSpace(_options.FileDataStoreFullPathOverride))
+                dataStore = new FileDataStore(_options.FileDataStoreFullPathOverride, true);
 
             _logger.LogDebug($"Requesting authorization...");
             var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 namespace CasCap.Models
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum GooglePhotosScope
     {
         /// <summary>
@@ -44,6 +45,7 @@ namespace CasCap.Models
         Sharing
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum GooglePhotosUploadMethod
     {
         Simple,

@@ -37,10 +37,10 @@ namespace CasCap.Models
 
         /// <summary>
         /// Folder path to locally cached OAuth 2.0 JSON file.
-        /// If FileDataStoreFullPath is left as null then Google Auth library will use the
+        /// If FileDataStoreFullPathOverride is left as null then Google Auth library will use the
         /// FileDataStoreFullPathDefault location to store a cached OAuth 2.0 JSON file per User.
         /// </summary>
-        public string? FileDataStoreFullPath { get; set; }
+        public string? FileDataStoreFullPathOverride { get; set; }
 
         /// <summary>
         /// e.g. Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth");
