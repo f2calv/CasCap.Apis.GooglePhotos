@@ -42,7 +42,7 @@ namespace CasCap.Services
         {
             var uploadToken = await UploadMediaAsync(path, uploadMethod);
             if (!string.IsNullOrWhiteSpace(uploadToken))
-                return await AddMediaItemAsync(uploadToken!, Path.GetFileName(path), description, albumId);
+                return await AddMediaItemAsync(uploadToken!, path, description, albumId);
             return null;
         }
 

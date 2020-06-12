@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.IO;
 namespace CasCap.Models
 {
     [JsonConverter(typeof(StringEnumConverter))]
@@ -309,7 +310,7 @@ namespace CasCap.Models
         {
             if (string.IsNullOrWhiteSpace(uploadToken)) throw new ArgumentException($"{nameof(uploadToken)} is null or whitespace??");
             this.uploadToken = uploadToken;
-            this.fileName = fileName;
+            this.fileName = Path.GetFileName(fileName);
             this.description = description;
         }
 
@@ -317,7 +318,7 @@ namespace CasCap.Models
         {
             if (string.IsNullOrWhiteSpace(uploadToken)) throw new ArgumentException($"{nameof(uploadToken)} is null or whitespace??");
             this.uploadToken = uploadToken;
-            this.fileName = fileName;
+            this.fileName = Path.GetFileName(fileName);
         }
 
         public string uploadToken { get; }
