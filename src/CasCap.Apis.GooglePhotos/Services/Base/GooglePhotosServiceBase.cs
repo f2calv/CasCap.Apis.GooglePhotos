@@ -389,6 +389,8 @@ namespace CasCap.Services
             return res.obj;
         }
 
+        public Task<mediaItemsGetResponse?> GetMediaItemsByIdsAsync(List<string> mediaItemIds) => GetMediaItemsByIdsAsync(mediaItemIds.ToArray());
+
         public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
         {
             return _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
