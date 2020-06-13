@@ -578,7 +578,7 @@ namespace CasCap.Models
 
     public class Video
     {
-        public int fps { get; set; }
+        public double fps { get; set; }
         public string status { get; set; } = default!;
         public string? cameraMake { get; set; }
         public string? cameraModel { get; set; }

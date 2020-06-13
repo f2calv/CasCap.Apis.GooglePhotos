@@ -62,12 +62,12 @@ namespace CasCap.Messages
 
     public class mediaItemsResponse : ResponseBase
     {
-        public MediaItem[] mediaItems { get; set; } = default!;
+        public List<MediaItem> mediaItems { get; set; } = default!;
     }
 
     public class mediaItemsGetResponse
     {
-        public mediaItemGetResponse[] mediaItemResults { get; set; } = default!;
+        public List<mediaItemGetResponse> mediaItemResults { get; set; } = default!;
     }
 
     public class mediaItemGetResponse

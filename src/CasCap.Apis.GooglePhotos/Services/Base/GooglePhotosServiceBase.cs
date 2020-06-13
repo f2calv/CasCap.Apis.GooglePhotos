@@ -32,6 +32,22 @@ namespace CasCap.Services
         const int defaultPageSizeMediaItems = 100;
         const int maxPageSizeMediaItems = 100;
 
+        GooglePhotosOptions? _options;
+
+        public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
+            IOptions<GooglePhotosOptions> options,
+            HttpClient client
+            )
+        {
+            _logger = logger;
+            _options = options.Value;// ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
+            _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
+        }
+
+        protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
+
+        public event EventHandler<PagingEventArgs>? PagingEvent;
+
         bool IsImage(string extension) => dMimeTypesImages.TryGetValue(extension, out var _);
 
         //todo: do we need to handle the mime types in a more forgiving way?
@@ -82,18 +98,6 @@ namespace CasCap.Services
             { GooglePhotosScope.Access , "https://www.googleapis.com/auth/photoslibrary"},
             { GooglePhotosScope.Sharing , "https://www.googleapis.com/auth/photoslibrary.sharing"}
         };
-
-        GooglePhotosOptions? _options;
-
-        public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
-            IOptions<GooglePhotosOptions> options,
-            HttpClient client
-            )
-        {
-            _logger = logger;
-            _options = options.Value;// ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
-            _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
-        }
 
         public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null)
         {
@@ -194,26 +198,34 @@ namespace CasCap.Services
         public Task<List<Album>> GetSharedAlbumsAsync(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)
             => _GetAlbumsAsync(RequestUris.GET_sharedAlbums, pageSize, excludeNonAppCreatedData);
 
+        //todo: add IPagable interface and merge with similar
         async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
         {
-            if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums) throw new ArgumentException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
-            var albums = new List<Album>();
+            if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums)
+                throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
+
+            var l = new List<Album>();
             var pageToken = string.Empty;
+            var pageNumber = 1;
             while (pageToken != null)
             {
                 var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
                 var res = await Get<albumsGetResponse>(_requestUri);
                 if (res.obj is object)
                 {
-                    if (!res.obj.albums.IsNullOrEmpty()) albums.AddRange(res.obj.albums);
-                    if (!res.obj.sharedAlbums.IsNullOrEmpty()) albums.AddRange(res.obj.sharedAlbums);
-                    //if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken)) //todo: raise paging event
+                    var batch = new List<Album>(pageSize);
+                    if (!res.obj.albums.IsNullOrEmpty()) batch = res.obj.albums ?? new List<Album>();
+                    if (!res.obj.sharedAlbums.IsNullOrEmpty()) batch = res.obj.sharedAlbums ?? new List<Album>();
+                    l.AddRange(batch);
+                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
                     pageToken = res.obj.nextPageToken;
+                    pageNumber++;
                 }
                 else
                     break;
             }
-            return albums;
+            return l;
         }
 
         string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
@@ -281,47 +293,72 @@ namespace CasCap.Services
         #endregion
 
         #region https://photoslibrary.googleapis.com/v1/mediaItems
-        async Task<List<MediaItem>> _GetMediaItemsAsync(int? pageSize, bool excludeNonAppCreatedData, string requestUri)
+        //todo: add IPagable interface and merge with similar
+        async Task<List<MediaItem>> _GetMediaItemsAsync(int pageSize, bool excludeNonAppCreatedData, string requestUri)
         {
-            if (pageSize.HasValue && (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)) throw new ArgumentException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
+            if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
+                throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
-            var mediaItems = new List<MediaItem>();
+            var l = new List<MediaItem>();
             var pageToken = string.Empty;
+            var pageNumber = 1;
             while (pageToken != null)
             {
                 var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
                 var res = await Get<mediaItemsResponse>(_requestUri);
                 if (res.obj is object)
                 {
-                    if (!res.obj.mediaItems.IsNullOrEmpty()) mediaItems.AddRange(res.obj.mediaItems);
-                    //if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken)) //todo: raise paging event
+                    var batch = new List<MediaItem>(pageSize);
+                    if (!res.obj.mediaItems.IsNullOrEmpty()) batch = res.obj.mediaItems ?? new List<MediaItem>();
+                    l.AddRange(batch);
+                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                        {
+                            minDate = batch.Min(p => p.mediaMetadata.creationTime),
+                            maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                        });
                     pageToken = res.obj.nextPageToken;
+                    pageNumber++;
                 }
                 else
                     break;
             }
-            return mediaItems;
+            return l;
         }
 
+        //todo: add IPagable interface and merge with similar
         async Task<List<MediaItem>> _GetMediaItemsAsync(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri)
         {
+            if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
+                throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
+
             if (filters != null && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
-            var mediaItems = new List<MediaItem>();
+
+            var l = new List<MediaItem>();
             var pageToken = string.Empty;
+            var pageNumber = 1;
             while (pageToken != null)
             {
                 var req = new { albumId, pageSize, pageToken, filters };
                 var res = await PostJson<mediaItemsResponse>(requestUri, req);
                 if (res.obj is object)
                 {
-                    if (!res.obj.mediaItems.IsNullOrEmpty()) mediaItems.AddRange(res.obj.mediaItems);
-                    //if (!string.IsNullOrWhiteSpace(res.nextPageToken)) //todo: raise paging event
+                    var batch = new List<MediaItem>(pageSize);
+                    if (!res.obj.mediaItems.IsNullOrEmpty()) batch = res.obj.mediaItems ?? new List<MediaItem>();
+                    l.AddRange(batch);
+                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                        {
+                            minDate = batch.Min(p => p.mediaMetadata.creationTime),
+                            maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                        });
                     pageToken = res.obj.nextPageToken;
+                    pageNumber++;
                 }
                 else
                     break;
             }
-            return mediaItems;
+            return l;
         }
 
         public Task<List<MediaItem>> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
