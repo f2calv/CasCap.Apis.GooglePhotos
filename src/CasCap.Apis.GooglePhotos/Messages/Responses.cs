@@ -3,18 +3,18 @@ using CasCap.Models;
 using System.Collections.Generic;
 namespace CasCap.Messages
 {
-    public class albumsGetResponse : ResponseBase
+    internal class albumsGetResponse : ResponseBase
     {
         public List<Album>? albums { get; set; }
         public List<Album>? sharedAlbums { get; set; }
     }
 
-    public class sharedAlbumResponse
+    internal class sharedAlbumResponse
     {
         public ShareInfo shareInfo { get; set; } = default!;
     }
 
-    public class mediaItemsCreateResponse
+    public class mediaItemsCreateResponse//todo: should this be internal?
     {
         /// <summary>
         /// Output only. List of media items created.
@@ -25,7 +25,7 @@ namespace CasCap.Messages
     /// <summary>
     /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#request-body
     /// </summary>
-    public class AddEnrichmentRequest
+    internal class AddEnrichmentRequest
     {
         public AddEnrichmentRequest(NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
         {
@@ -47,7 +47,7 @@ namespace CasCap.Messages
     /// <summary>
     /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#response-body
     /// </summary>
-    public class AddEnrichmentResponse
+    internal class AddEnrichmentResponse
     {
         /// <summary>
         /// Output only. Enrichment which was added.
@@ -60,17 +60,17 @@ namespace CasCap.Messages
         public string id { get; set; } = default!;
     }
 
-    public class mediaItemsResponse : ResponseBase
+    internal class mediaItemsResponse : ResponseBase
     {
-        public MediaItem[] mediaItems { get; set; } = default!;
+        public List<MediaItem> mediaItems { get; set; } = default!;
     }
 
-    public class mediaItemsGetResponse
+    internal class mediaItemsGetResponse
     {
-        public mediaItemGetResponse[] mediaItemResults { get; set; } = default!;
+        public List<mediaItemGetResponse> mediaItemResults { get; set; } = default!;
     }
 
-    public class mediaItemGetResponse
+    internal class mediaItemGetResponse
     {
         public MediaItem mediaItem { get; set; } = default!;
         public Status status { get; set; } = default!;

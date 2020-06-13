@@ -42,7 +42,7 @@ namespace CasCap.Services
         {
             var uploadToken = await UploadMediaAsync(path, uploadMethod);
             if (!string.IsNullOrWhiteSpace(uploadToken))
-                return await AddMediaItemAsync(uploadToken!, Path.GetFileName(path), description, albumId);
+                return await AddMediaItemAsync(uploadToken!, path, description, albumId);
             return null;
         }
 
@@ -66,6 +66,23 @@ namespace CasCap.Services
                 //todo: raise photo uploaded event here
             }
             return await AddMediaItemsAsync(uploadItems, albumId);
+        }
+
+        public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExif = false)
+            => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExif);
+
+        //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
+        public async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExif = false)
+        {
+            var qs = string.Empty;
+            if (maxWidth.HasValue && maxHeight.HasValue)
+            {
+                qs += $"=w{maxWidth.Value}-h{maxHeight.Value}";
+                if (crop) qs += "-c";
+            }
+            else if (includeExif) qs += "=d";
+            var tpl = await Get<byte[]>(baseUrl + qs);
+            return tpl.obj;
         }
     }
 }
