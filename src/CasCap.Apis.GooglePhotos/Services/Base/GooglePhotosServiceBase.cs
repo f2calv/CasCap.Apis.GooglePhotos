@@ -32,6 +32,8 @@ namespace CasCap.Services
         const int defaultPageSizeMediaItems = 100;
         const int maxPageSizeMediaItems = 100;
 
+        const int defaultBatchSizeMediaItems = 50;
+
         GooglePhotosOptions? _options;
 
         public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
@@ -374,22 +376,41 @@ namespace CasCap.Services
         }
 
         //https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=media-item-id&mediaItemIds=another-media-item-id&mediaItemIds=incorrect-media-item-id
-        public async Task<mediaItemsGetResponse?> GetMediaItemsByIdsAsync(string[] mediaItemIds)
-        {
-            //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString here wait for .net 5
-            //var queryParams = new Dictionary<string, string>(mediaItemIds.Length);
-            //foreach (var mediaItemId in mediaItemIds)
-            //    queryParams.Add(nameof(mediaItemIds), mediaItemId);
-            //var url = QueryHelpers.AddQueryString(RequestUris.GET_mediaItems_batchGet, queryParams);
-            var sb = new StringBuilder();
-            foreach (var mediaItemId in mediaItemIds)
-                sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
-            var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString().Substring(1)}";
-            var res = await Get<mediaItemsGetResponse>(url);
-            return res.obj;
-        }
+        public Task<List<MediaItem>> GetMediaItemsByIdsAsync(string[] mediaItemIds)
+            => GetMediaItemsByIdsAsync(mediaItemIds.ToList());
 
-        public Task<mediaItemsGetResponse?> GetMediaItemsByIdsAsync(List<string> mediaItemIds) => GetMediaItemsByIdsAsync(mediaItemIds.ToArray());
+        public async Task<List<MediaItem>> GetMediaItemsByIdsAsync(List<string> mediaItemIds)
+        {
+            var l = new List<MediaItem>();
+            var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
+            foreach (var batch in batches)
+            {
+                //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString here wait for .net 5
+                //var queryParams = new Dictionary<string, string>(batch.Value.Length);
+                //foreach (var mediaItemId in batch.Value)
+                //    queryParams.Add(nameof(mediaItemIds), mediaItemId);
+                //var url = QueryHelpers.AddQueryString(RequestUris.GET_mediaItems_batchGet, queryParams);
+                var sb = new StringBuilder();
+                foreach (var mediaItemId in batch.Value)
+                    sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
+                var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString().Substring(1)}";
+                var res = await Get<mediaItemsGetResponse>(url);
+                if (res.obj is object)
+                {
+                    //l.AddRange(res.obj.mediaItemResults);
+                    foreach (var result in res.obj.mediaItemResults)
+                    {
+                        if (result.status is null)
+                            l.Add(result.mediaItem);
+                        else
+                            _logger.LogWarning($"{result.status}");//we highlight if any objects returned a non-null status object
+                    }
+                    if (batch.Key + 1 != batches.Count)
+                        RaisePagingEvent(new PagingEventArgs(res.obj.mediaItemResults.Count, batch.Key + 1, l.Count));
+                }
+            }
+            return l;
+        }
 
         public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
         {
