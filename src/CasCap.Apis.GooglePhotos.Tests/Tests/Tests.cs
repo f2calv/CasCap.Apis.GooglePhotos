@@ -135,16 +135,12 @@ namespace CasCap.Apis.GooglePhotos.Tests
             //retrieve multiple media items by unique ids
             var ids = mediaItems.Select(p => p.id).ToList();
             ids.Add("invalid-id");
-            var mis = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
-            Assert.NotNull(mis);
-            Assert.NotNull(mis.mediaItemResults);
-            Assert.True(mis.mediaItemResults.Count(p => p.mediaItem is null) == 1);//should have 1 failed item
-            foreach (var _mi in mis.mediaItemResults)
+            var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
+            Assert.NotNull(mediaItems2);
+            Assert.True(mediaItems2.Count(p => p is null) == 1);//should have 1 failed item
+            foreach (var _mi in mediaItems2)
             {
-                if (_mi.mediaItem != null)
-                    Debug.WriteLine(_mi.mediaItem.ToJSON());
-                else
-                    Debug.WriteLine(_mi.status.ToJSON());
+                Debug.WriteLine(_mi.ToJSON());
             }
             Assert.True(true);
         }
