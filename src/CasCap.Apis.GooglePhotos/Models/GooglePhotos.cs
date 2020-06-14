@@ -177,23 +177,25 @@ namespace CasCap.Models
 
     public class date
     {
+        public date() { }
+
         public date(DateTime dt)
         {
+            this.year = dt.Year;
             this.month = dt.Month;
             this.day = dt.Day;
-            this.year = dt.Year;
         }
 
-        public date(int month, int day, int year)
+        public date(int year, int month, int day)
         {
+            this.year = year;
             this.month = month;
             this.day = day;
-            this.year = year;
         }
 
-        public int month { get; }
-        public int day { get; }
-        public int year { get; }
+        public int year { get; set; }
+        public int month { get; set; }
+        public int day { get; set; }
     }
 
     public class range

@@ -171,7 +171,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
                     //dates = new date[] { new date { year = 2016, month = 12 } },
                     //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
                     //ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-                    ranges = new range[] { new range { startDate = new startDate { year = 1900 }, endDate = new endDate { year = DateTime.UtcNow.Year } } },
+                    ranges = new range[] { new range { startDate = new date { year = 1900 }, endDate = new date { year = DateTime.UtcNow.Year } } },
                 };
             mediaTypeFilter mediaTypeFilter = null;
             if (false)
