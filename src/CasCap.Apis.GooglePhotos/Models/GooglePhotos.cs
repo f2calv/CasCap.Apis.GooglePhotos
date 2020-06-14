@@ -129,6 +129,22 @@ namespace CasCap.Models
 
     public class Filter
     {
+        public Filter() { }
+
+        public Filter(DateTime startDate, DateTime endDate)
+        {
+            dateFilter = new dateFilter
+            {
+                ranges = new[] { new range { startDate = new date(startDate), endDate = new date(endDate) } }
+            };
+        }
+
+        public Filter(GooglePhotosContentCategoryType category) => this.contentFilter = new contentFilter { includedContentCategories = new[] { category } };
+
+        public Filter(GooglePhotosContentCategoryType[] categories) => this.contentFilter = new contentFilter { includedContentCategories = categories };
+
+        public Filter(List<GooglePhotosContentCategoryType> categories) => this.contentFilter = new contentFilter { includedContentCategories = categories.ToArray() };
+
         public contentFilter? contentFilter { get; set; }
         public dateFilter? dateFilter { get; set; }
         public featureFilter? featureFilter { get; set; }
@@ -161,29 +177,29 @@ namespace CasCap.Models
 
     public class date
     {
-        public int month { get; set; }
-        public int day { get; set; }
-        public int year { get; set; }
+        public date(DateTime dt)
+        {
+            this.month = dt.Month;
+            this.day = dt.Day;
+            this.year = dt.Year;
+        }
+
+        public date(int month, int day, int year)
+        {
+            this.month = month;
+            this.day = day;
+            this.year = year;
+        }
+
+        public int month { get; }
+        public int day { get; }
+        public int year { get; }
     }
 
     public class range
     {
-        public startDate startDate { get; set; } = default!;
-        public endDate endDate { get; set; } = default!;
-    }
-
-    public class startDate
-    {
-        public int year { get; set; }
-        public int month { get; set; }
-        public int day { get; set; }
-    }
-
-    public class endDate
-    {
-        public int year { get; set; }
-        public int month { get; set; }
-        public int day { get; set; }
+        public date startDate { get; set; } = default!;
+        public date endDate { get; set; } = default!;
     }
 
     public class Album
@@ -549,6 +565,11 @@ namespace CasCap.Models
         /// Contains information about the contributor who added this media item. For more details, see Share media.
         /// </summary>
         public ContributorInfo? contributorInfo { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.filename} {this.mediaMetadata.creationTime:yyyy-MM-dd HH:mm:ss}";
+        }
     }
 
     public class MediaMetaData
