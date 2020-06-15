@@ -248,18 +248,36 @@ namespace CasCap.Services
             return res.obj;
         }
 
-        public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds)
+        public Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds)
+            => AddMediaItemsToAlbumAsync(albumId, mediaItemIds.ToList());
+
+        public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, List<string> mediaItemIds)
         {
-            var req = new { mediaItemIds };
-            var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
-            return res.statusCode == HttpStatusCode.OK;
+            var batches = mediaItemIds.Distinct().ToList().GetBatches(defaultBatchSizeMediaItems);
+            foreach (var batch in batches)
+            {
+                var req = new { mediaItemIds = batch.Value };
+                var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
+                if (res.statusCode != HttpStatusCode.OK)
+                    return false;//bomb out early
+            }
+            return true;
         }
 
-        public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds)
+        public Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds)
+            => RemoveMediaItemsFromAlbumAsync(albumId, mediaItemIds.ToList());
+
+        public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, List<string> mediaItemIds)
         {
-            var req = new { mediaItemIds };
-            var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
-            return res.statusCode == HttpStatusCode.OK;
+            var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
+            foreach (var batch in batches)
+            {
+                var req = new { mediaItemIds = batch.Value };
+                var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
+                if (res.statusCode != HttpStatusCode.OK)
+                    return false;//bomb out early
+            }
+            return true;
         }
 
         public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)

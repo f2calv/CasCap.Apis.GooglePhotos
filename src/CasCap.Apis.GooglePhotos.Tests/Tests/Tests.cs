@@ -108,6 +108,11 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.NotNull(response2.newMediaItemResults);
             Assert.True(response2.newMediaItemResults.Count == filePaths2.Length);
 
+            var removed = await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(album.id, response2.newMediaItemResults.Select(p => p.mediaItem.id).ToArray());
+            Assert.True(removed);
+            var added = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.id, response2.newMediaItemResults.Select(p => p.mediaItem.id).ToArray());
+            Assert.True(added);
+
             //retrieve all albums
             var albums = await _googlePhotosSvc.GetAlbumsAsync();
             Assert.NotNull(albums);
@@ -137,7 +142,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             ids.Add("invalid-id");
             var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
             Assert.NotNull(mediaItems2);
-            Assert.True(mediaItems2.Count(p => p is null) == 1);//should have 1 failed item
+            Assert.True(ids.Count - mediaItems2.Count == 1);//should have 1 failed item
             foreach (var _mi in mediaItems2)
             {
                 Debug.WriteLine(_mi.ToJSON());
