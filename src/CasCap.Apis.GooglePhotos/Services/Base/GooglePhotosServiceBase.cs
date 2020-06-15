@@ -417,13 +417,13 @@ namespace CasCap.Services
             return _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
         }
 
-        public Task<List<MediaItem>> GetMediaItemsByDateRange(DateTime startDate, DateTime endDate) => GetMediaItemsByFilterAsync(new Filter(startDate, endDate));
+        public Task<List<MediaItem>> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate) => GetMediaItemsByFilterAsync(new Filter(startDate, endDate));
 
-        public Task<List<MediaItem>> GetMediaItemsByCategory(GooglePhotosContentCategoryType category) => GetMediaItemsByFilterAsync(new Filter(category));
+        public Task<List<MediaItem>> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category) => GetMediaItemsByFilterAsync(new Filter(category));
 
-        public Task<List<MediaItem>> GetMediaItemsByCategories(GooglePhotosContentCategoryType[] categories) => GetMediaItemsByFilterAsync(new Filter(categories));
+        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories) => GetMediaItemsByFilterAsync(new Filter(categories));
 
-        public Task<List<MediaItem>> GetMediaItemsByCategories(List<GooglePhotosContentCategoryType> categories) => GetMediaItemsByFilterAsync(new Filter(categories));
+        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories) => GetMediaItemsByFilterAsync(new Filter(categories));
 
         public Task<List<MediaItem>> GetMediaItemsByFilterAsync(Filter filter)
         {

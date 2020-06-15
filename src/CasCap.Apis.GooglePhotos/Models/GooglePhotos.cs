@@ -583,10 +583,8 @@ namespace CasCap.Models
         public Video? video { get; set; }
     }
 
-    public class Photo
+    public class Photo : Camera
     {
-        public string? cameraMake { get; set; }
-        public string? cameraModel { get; set; }
         public float focalLength { get; set; }
         public float apertureFNumber { get; set; }
         public int isoEquivalent { get; set; }
@@ -599,10 +597,14 @@ namespace CasCap.Models
         public string? displayName { get; set; }
     }
 
-    public class Video
+    public class Video : Camera
     {
         public double fps { get; set; }
         public string status { get; set; } = default!;
+    }
+
+    public abstract class Camera
+    {
         public string? cameraMake { get; set; }
         public string? cameraModel { get; set; }
     }
