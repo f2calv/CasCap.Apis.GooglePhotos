@@ -6,6 +6,7 @@ using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MimeTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,53 +57,47 @@ namespace CasCap.Services
 
         public bool IsFileUploadableByExtension(string extension)
         {
-            if (dMimeTypesImageMap.TryGetValue(extension, out var _))
+            if (IsImage(extension))
                 return true;
-            if (dMimeTypeVideoMap.TryGetValue(extension, out var _))
+            if (IsVideo(extension))
                 return true;
             return false;
         }
 
-        bool IsImage(string extension) => dMimeTypesImageMap.TryGetValue(extension, out var _);
+        bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
 
-        //todo: do we need to handle the mime types in a more forgiving way?
-        static Dictionary<string, string> dMimeTypesImageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        static HashSet<string> AcceptedMimeTypesImage = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            { ".bmp", "image/bmp" },
-            { ".gif", "image/gif" },
-            { ".heic", "image/heic" },
-            { ".ico", "image/vnd.microsoft.icon" },
-            { ".jpg", "image/jpeg" },
-            { ".jpeg", "image/jpeg" },
-            { ".png", "image/png" },
-            { ".tif", "image/tiff" },
-            { ".tiff", "image/tiff" },
-            { ".webp", "image/webp" },
+            { "image/bmp" },
+            { "image/gif" },
+            { "image/heic" },
+            { "image/vnd.microsoft.icon" },
+            { "image/jpeg" },
+            { "image/jpeg" },
+            { "image/png" },
+            { "image/tiff" },
+            { "image/webp" },
         };
 
-        bool IsVideo(string extension) => dMimeTypeVideoMap.TryGetValue(extension, out var _);
+        bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
 
         //todo: do we need to handle the mime types in a more forgiving way?
-        static Dictionary<string, string> dMimeTypeVideoMap = new Dictionary<string, string>
+        static HashSet<string> AcceptedMimeTypesVideo = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            { ".3gp", "video/3gpp" },
-            { ".3g2", "video/3gpp2" },
-            { ".asf", "video/x-ms-asf" },
-            { ".avi", "video/x-msvideo" },
-            { ".divx", "video/divx" },
-            { ".m2t", "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-            { ".m2ts", "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-            { ".m4v", "video/mp4" },
-            { ".mkv", "video/x-matroska" },
-            { ".mmv", "video/mmv" },//?
-            { ".mod", "video/mod" },//?
-            { ".mov", "video/quicktime" },
-            { ".mp4", "video/mp4" },
-            { ".mpg", "video/mpeg" },
-            { ".mpeg", "video/mpeg" },
-            { ".mts", "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-            { ".tod", "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-            { ".wmv", "video/x-ms-wmv" },
+            { "video/3gpp" },
+            { "video/3gpp2" },
+            { "video/x-ms-asf" },
+            { "video/x-msvideo" },
+            { "video/divx" },
+            { "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
+            { "video/mp4" },
+            { "video/x-matroska" },
+            { "video/mmv" },//?
+            { "video/mod" },//?
+            { "video/quicktime" },
+            { "video/mp4" },
+            { "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
+            { "video/x-ms-wmv" },
         };
 
         static Dictionary<GooglePhotosScope, string> dScopes = new Dictionary<GooglePhotosScope, string>
@@ -713,10 +708,10 @@ namespace CasCap.Services
             {
                 var fileExtension = Path.GetExtension(path);
                 if (string.IsNullOrWhiteSpace(fileExtension)) throw new NotSupportedException($"Missing file extension, unable to determine mime type for; {path}");
-                if (dMimeTypesImageMap.TryGetValue(fileExtension, out var imageMimeType))
-                    return imageMimeType;
-                else if (dMimeTypeVideoMap.TryGetValue(fileExtension, out var videoMimeType))
-                    return videoMimeType;
+                if (IsImage(fileExtension))
+                    return MimeTypeMap.GetMimeType(fileExtension);
+                else if (IsVideo(fileExtension))
+                    return MimeTypeMap.GetMimeType(fileExtension);
                 else
                     throw new NotSupportedException($"Cannot match file extension '{fileExtension}' from '{path}' to a known image or video mime type.");
             }
