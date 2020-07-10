@@ -47,13 +47,26 @@ namespace CasCap.Services
         }
 
         protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
-
         public event EventHandler<PagingEventArgs>? PagingEvent;
 
-        bool IsImage(string extension) => dMimeTypesImages.TryGetValue(extension, out var _);
+        protected virtual void RaiseUploadProgressEvent(UploadProgressArgs args) => UploadProgressEvent?.Invoke(this, args);
+        public event EventHandler<UploadProgressArgs>? UploadProgressEvent;
+
+        public bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
+
+        public bool IsFileUploadableByExtension(string extension)
+        {
+            if (dMimeTypesImageMap.TryGetValue(extension, out var _))
+                return true;
+            if (dMimeTypeVideoMap.TryGetValue(extension, out var _))
+                return true;
+            return false;
+        }
+
+        bool IsImage(string extension) => dMimeTypesImageMap.TryGetValue(extension, out var _);
 
         //todo: do we need to handle the mime types in a more forgiving way?
-        static Dictionary<string, string> dMimeTypesImages = new Dictionary<string, string>
+        static Dictionary<string, string> dMimeTypesImageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { ".bmp", "image/bmp" },
             { ".gif", "image/gif" },
@@ -67,10 +80,10 @@ namespace CasCap.Services
             { ".webp", "image/webp" },
         };
 
-        bool IsVideo(string extension) => dMimeTypesVideos.TryGetValue(extension, out var _);
+        bool IsVideo(string extension) => dMimeTypeVideoMap.TryGetValue(extension, out var _);
 
         //todo: do we need to handle the mime types in a more forgiving way?
-        static Dictionary<string, string> dMimeTypesVideos = new Dictionary<string, string>
+        static Dictionary<string, string> dMimeTypeVideoMap = new Dictionary<string, string>
         {
             { ".3gp", "video/3gpp" },
             { ".3g2", "video/3gpp2" },
@@ -516,6 +529,15 @@ namespace CasCap.Services
             }
         }
 
+        public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<(string uploadToken, string FileName)> items, string? albumId = null,
+            GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
+        {
+            var uploadItems = new List<UploadItem>(items.Count);
+            foreach (var item in items)
+                uploadItems.Add(new UploadItem(item.uploadToken, item.FileName));
+            return AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+        }
+
         public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
             GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
             => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
@@ -560,7 +582,7 @@ namespace CasCap.Services
         //https://developers.google.com/photos/library/guides/upload-media
         //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
         //https://developers.google.com/photos/library/guides/resumable-uploads
-        public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+        public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, Action<int>? callback = null)
         {
             if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
             var size = new FileInfo(path).Length;
@@ -628,19 +650,21 @@ namespace CasCap.Services
                 else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
                 {
                     var offset = 0;
-                    var attempt = 0;
+                    var attemptCount = 0;
                     var retryLimit = 10;//todo: move this into settings
-
+                    var batchCount = Math.Ceiling(size / (double)Upload_Chunk_Granularity);
+                    var batchIndex = 0;
                     using (var fs = File.OpenRead(path))
                     using (var reader = new BinaryReader(fs))
                     {
                         while (true)
                         {
-                            attempt++;
-                            if (attempt > retryLimit)
+                            attemptCount++;
+                            if (attemptCount > retryLimit)
                                 return null;
 
-                            var lastChunk = offset + Upload_Chunk_Granularity >= size;
+                            //var lastChunk = offset + Upload_Chunk_Granularity >= size;
+                            var lastChunk = batchIndex + 1 == batchCount;
 
                             headers = new List<(string name, string value)>();
                             headers.Add((X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"));
@@ -662,14 +686,20 @@ namespace CasCap.Services
                                 //Debug.WriteLine($"status={status}");
                                 var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                                 //Debug.WriteLine($"bytesReceived={bytesReceived}");
-                                Debug.WriteLine($"retryCount={attempt}\ttrying upload again...");
+                                Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
                             }
                             else
                             {
-                                attempt = 0;//reset retry count
-                                offset += Upload_Chunk_Granularity;
-                                if (bytes.Length < Upload_Chunk_Granularity)
-                                    break;
+                                attemptCount = 0;//reset retry count
+                                offset += bytes.Length;
+                                RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
+                                batchIndex++;
+                                //if (callback is object)
+                                //    callback(bytes.Length);
+                                //if (bytes.Length < Upload_Chunk_Granularity)
+                                //    break;//this was the last one
+                                if (lastChunk)
+                                    break;//this was the last one
                             }
                         }
                         return tpl.obj;
@@ -683,9 +713,9 @@ namespace CasCap.Services
             {
                 var fileExtension = Path.GetExtension(path);
                 if (string.IsNullOrWhiteSpace(fileExtension)) throw new NotSupportedException($"Missing file extension, unable to determine mime type for; {path}");
-                if (dMimeTypesImages.TryGetValue(fileExtension, out var imageMimeType))
+                if (dMimeTypesImageMap.TryGetValue(fileExtension, out var imageMimeType))
                     return imageMimeType;
-                else if (dMimeTypesVideos.TryGetValue(fileExtension, out var videoMimeType))
+                else if (dMimeTypeVideoMap.TryGetValue(fileExtension, out var videoMimeType))
                     return videoMimeType;
                 else
                     throw new NotSupportedException($"Cannot match file extension '{fileExtension}' from '{path}' to a known image or video mime type.");
