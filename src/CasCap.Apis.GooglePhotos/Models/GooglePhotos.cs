@@ -547,6 +547,18 @@ namespace CasCap.Models
         public string baseUrl { get; set; } = default!;
 
         /// <summary>
+        /// Used to help determine if the media item is more than 1 hour old, if so then the baseUrl is expired.
+        /// </summary>
+        [JsonIgnore]
+        public DateTime syncDate { get; } = DateTime.UtcNow;
+
+        [JsonIgnore]
+        public bool isPhoto { get { return mediaMetadata.photo is object; } }
+
+        [JsonIgnore]
+        public bool isVideo { get { return mediaMetadata.video is object; } }
+
+        /// <summary>
         /// The type of the media item to help easily identify the type of media (for example: image/jpg).
         /// </summary>
         public string mimeType { get; set; } = default!;//todo: nullability look further into this (will it return a mime type if we don't send one in?)
