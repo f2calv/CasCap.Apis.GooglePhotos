@@ -68,20 +68,24 @@ namespace CasCap.Services
             return await AddMediaItemsAsync(uploadItems, albumId);
         }
 
-        public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExif = false)
-            => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExif);
+        public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool download = false)
+            => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, downloadPhoto: mediaItem.isPhoto && download, downloadVideo: mediaItem.isVideo && download);
 
         //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
-        public async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExif = false)
+        //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
+        async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool downloadPhoto = false, bool downloadVideo = false)
         {
-            var qs = string.Empty;
-            if (maxWidth.HasValue && maxHeight.HasValue)
+            var qs = new List<string>();
+            if (maxWidth.HasValue || maxHeight.HasValue)
             {
-                qs += $"=w{maxWidth.Value}-h{maxHeight.Value}";
-                if (crop) qs += "-c";
+                if (maxWidth.HasValue) qs.Add($"w{maxWidth.Value}");
+                if (maxHeight.HasValue) qs.Add($"h{maxHeight.Value}");
+                if (crop) qs.Add("c");
             }
-            else if (includeExif) qs += "=d";
-            var tpl = await Get<byte[]>(baseUrl + qs);
+            if (downloadVideo) qs.Add("dv");
+            if (downloadPhoto || qs.Count == 0) qs.Add("d");
+            baseUrl += $"={string.Join("-", qs)}";
+            var tpl = await Get<byte[]>(baseUrl);
             return tpl.obj;
         }
     }
