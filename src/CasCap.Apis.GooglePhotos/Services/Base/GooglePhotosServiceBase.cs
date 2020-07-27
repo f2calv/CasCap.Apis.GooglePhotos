@@ -1,4 +1,5 @@
 ﻿using CasCap.Common.Extensions;
+using CasCap.Exceptions;
 using CasCap.Messages;
 using CasCap.Models;
 using Google.Apis.Auth.OAuth2;
@@ -183,14 +184,17 @@ namespace CasCap.Services
         //https://photoslibrary.googleapis.com/v1/albums/{albumId}
         public async Task<Album?> GetAlbumAsync(string albumId)
         {
-            var res = await Get<Album>(string.Format(RequestUris.GET_album, albumId));
-            return res.obj;
+            var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_album, albumId));
+
+            return tpl.result;
         }
 
         public async Task<Album?> GetSharedAlbumAsync(string sharedToken)
         {
-            var res = await Get<Album>(string.Format(RequestUris.GET_sharedAlbum, sharedToken));
-            return res.obj;
+            var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_sharedAlbum, sharedToken));
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+
+            return tpl.result;
         }
 
         /// <summary>
@@ -220,16 +224,17 @@ namespace CasCap.Services
             while (pageToken != null)
             {
                 var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
-                var res = await Get<albumsGetResponse>(_requestUri);
-                if (res.obj is object)
+                var tpl = await Get<albumsGetResponse, Error>(_requestUri);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                else if (tpl.result is object)//to hide nullability warning
                 {
                     var batch = new List<Album>(pageSize);
-                    if (!res.obj.albums.IsNullOrEmpty()) batch = res.obj.albums ?? new List<Album>();
-                    if (!res.obj.sharedAlbums.IsNullOrEmpty()) batch = res.obj.sharedAlbums ?? new List<Album>();
+                    if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? new List<Album>();
+                    if (!tpl.result.sharedAlbums.IsNullOrEmpty()) batch = tpl.result.sharedAlbums ?? new List<Album>();
                     l.AddRange(batch);
-                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                    if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
                         RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
-                    pageToken = res.obj.nextPageToken;
+                    pageToken = tpl.result.nextPageToken;
                     pageNumber++;
                 }
                 else
@@ -252,8 +257,9 @@ namespace CasCap.Services
         public async Task<Album?> CreateAlbumAsync(string title)
         {
             var req = new { album = new Album { title = title } };
-            var res = await PostJson<Album>(RequestUris.POST_albums, req);
-            return res.obj;
+            var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req);
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result;
         }
 
         public Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds)
@@ -265,9 +271,8 @@ namespace CasCap.Services
             foreach (var batch in batches)
             {
                 var req = new { mediaItemIds = batch.Value };
-                var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
-                if (res.statusCode != HttpStatusCode.OK)
-                    return false;//bomb out early
+                var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
             }
             return true;
         }
@@ -281,42 +286,46 @@ namespace CasCap.Services
             foreach (var batch in batches)
             {
                 var req = new { mediaItemIds = batch.Value };
-                var res = await PostJson<string>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
-                if (res.statusCode != HttpStatusCode.OK)
-                    return false;//bomb out early
+                var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
             }
             return true;
         }
 
         public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
         {
-            var res = await PostJson<AddEnrichmentResponse>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition));
-            return res.obj != null && res.obj.enrichmentItem != null ? res.obj.enrichmentItem : null;
+            var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition));
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result is object && tpl.result.enrichmentItem is object ? tpl.result.enrichmentItem : null;
         }
 
         public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true)
         {
             var req = new { sharedAlbumOptions = new SharedAlbumOptions { isCollaborative = isCollaborative, isCommentable = isCommentable } };
-            var res = await PostJson<sharedAlbumResponse>(string.Format(RequestUris.POST_share, albumId), req);
-            return res.obj != null && res.obj.shareInfo != null ? res.obj.shareInfo : null;
+            var tpl = await PostJson<sharedAlbumResponse, Error>(string.Format(RequestUris.POST_share, albumId), req);
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result is object && tpl.result.shareInfo is object ? tpl.result.shareInfo : null;
         }
 
         public async Task<bool> UnShareAlbumAsync(string albumId)
         {
-            var res = await PostJson<string>(string.Format(RequestUris.POST_unshare, albumId), new { });
-            return res.statusCode == HttpStatusCode.OK;
+            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_unshare, albumId), new { });
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return true;
         }
 
         public async Task<Album?> JoinSharedAlbumAsync(string shareToken)
         {
-            var res = await PostJson<Album>(RequestUris.POST_sharedAlbums_join, new { shareToken });
-            return res.obj;
+            var tpl = await PostJson<Album, Error>(RequestUris.POST_sharedAlbums_join, new { shareToken });
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result;
         }
 
         public async Task<bool> LeaveSharedAlbumAsync(string shareToken)
         {
-            var res = await PostJson<string>(RequestUris.POST_sharedAlbums_leave, new { shareToken });
-            return res.statusCode == HttpStatusCode.OK;
+            var tpl = await PostJson<string, Error>(RequestUris.POST_sharedAlbums_leave, new { shareToken });
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return true;
         }
         #endregion
 
@@ -333,19 +342,20 @@ namespace CasCap.Services
             while (pageToken != null)
             {
                 var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
-                var res = await Get<mediaItemsResponse>(_requestUri);
-                if (res.obj is object)
+                var tpl = await Get<mediaItemsResponse, Error>(_requestUri);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                else if (tpl.result is object)
                 {
                     var batch = new List<MediaItem>(pageSize);
-                    if (!res.obj.mediaItems.IsNullOrEmpty()) batch = res.obj.mediaItems ?? new List<MediaItem>();
+                    if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                     l.AddRange(batch);
-                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                    if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
                         RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
                         {
                             minDate = batch.Min(p => p.mediaMetadata.creationTime),
                             maxDate = batch.Max(p => p.mediaMetadata.creationTime),
                         });
-                    pageToken = res.obj.nextPageToken;
+                    pageToken = tpl.result.nextPageToken;
                     pageNumber++;
                 }
                 else
@@ -368,19 +378,20 @@ namespace CasCap.Services
             while (pageToken != null)
             {
                 var req = new { albumId, pageSize, pageToken, filters };
-                var res = await PostJson<mediaItemsResponse>(requestUri, req);
-                if (res.obj is object)
+                var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                else if (tpl.result is object)
                 {
                     var batch = new List<MediaItem>(pageSize);
-                    if (!res.obj.mediaItems.IsNullOrEmpty()) batch = res.obj.mediaItems ?? new List<MediaItem>();
+                    if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                     l.AddRange(batch);
-                    if (!string.IsNullOrWhiteSpace(res.obj.nextPageToken))
+                    if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
                         RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
                         {
                             minDate = batch.Min(p => p.mediaMetadata.creationTime),
                             maxDate = batch.Max(p => p.mediaMetadata.creationTime),
                         });
-                    pageToken = res.obj.nextPageToken;
+                    pageToken = tpl.result.nextPageToken;
                     pageNumber++;
                 }
                 else
@@ -397,8 +408,9 @@ namespace CasCap.Services
         //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
         public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
         {
-            var res = await Get<MediaItem>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
-            return res.obj;
+            var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result;
         }
 
         //https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=media-item-id&mediaItemIds=another-media-item-id&mediaItemIds=incorrect-media-item-id
@@ -420,11 +432,12 @@ namespace CasCap.Services
                 foreach (var mediaItemId in batch.Value)
                     sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
                 var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString().Substring(1)}";
-                var res = await Get<mediaItemsGetResponse>(url);
-                if (res.obj is object)
+                var tpl = await Get<mediaItemsGetResponse, Error>(url);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                else if (tpl.result is object)
                 {
                     //l.AddRange(res.obj.mediaItemResults);
-                    foreach (var result in res.obj.mediaItemResults)
+                    foreach (var result in tpl.result.mediaItemResults)
                     {
                         if (result.status is null)
                             l.Add(result.mediaItem);
@@ -432,16 +445,14 @@ namespace CasCap.Services
                             _logger.LogWarning($"{result.status}");//we highlight if any objects returned a non-null status object
                     }
                     if (batch.Key + 1 != batches.Count)
-                        RaisePagingEvent(new PagingEventArgs(res.obj.mediaItemResults.Count, batch.Key + 1, l.Count));
+                        RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, l.Count));
                 }
             }
             return l;
         }
 
         public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false)
-        {
-            return _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
-        }
+            => _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search);
 
         public Task<List<MediaItem>> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate) => GetMediaItemsByFilterAsync(new Filter(startDate, endDate));
 
@@ -514,9 +525,9 @@ namespace CasCap.Services
         async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null, AlbumPosition? albumPosition = null)
         {
             var newMediaItems = new List<UploadItem> { uploadItem };
-            var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
-            if (res != null && !res.newMediaItemResults.IsNullOrEmpty())
-                return res.newMediaItemResults[0];
+            var tpl = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
+            if (tpl != null && !tpl.newMediaItemResults.IsNullOrEmpty())
+                return tpl.newMediaItemResults[0];
             else
             {
                 _logger.LogError($"Upload failure, {uploadItem.fileName}");
@@ -557,8 +568,9 @@ namespace CasCap.Services
                 newMediaItems.Add(newMediaItem);
             }
             var req = new { newMediaItems, albumId, albumPosition };
-            var res = await PostJson<mediaItemsCreateResponse>(RequestUris.POST_mediaItems_batchCreate, req);
-            return res.obj;
+            var tpl = await PostJson<mediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req);
+            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            return tpl.result;
         }
         #endregion
 
@@ -603,12 +615,13 @@ namespace CasCap.Services
             if (uploadMethod == GooglePhotosUploadMethod.Simple)
             {
                 var bytes = File.ReadAllBytes(path);
-                var tpl = await PostBytes<string>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
-                return tpl.obj;
+                var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
+                if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                return tpl.result;
             }
             else
             {
-                var tpl = await PostBytes<string>(RequestUris.uploads, Array.Empty<byte>(), headers: headers);
+                var tpl = await PostBytes<string, Error>(RequestUris.uploads, Array.Empty<byte>(), headers: headers);
                 var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
                 var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL);
@@ -627,20 +640,21 @@ namespace CasCap.Services
 
                     //todo: for testing override bytes with a smaller value than expected
                     var bytes = File.ReadAllBytes(path);
-                    tpl = await PostBytes<string>(Upload_URL, bytes, headers: headers);
+                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
                     if (tpl.httpStatusCode != HttpStatusCode.OK)
                     {
                         //we were interrupted so query the status of the last upload
                         headers = new List<(string name, string value)>();
                         headers.Add((X_Goog_Upload_Command, "query"));
 
-                        tpl = await PostBytes<string>(Upload_URL, bytes, headers: headers);
+                        tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
+                        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
 
                         status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
                         var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                     }
 
-                    return tpl.obj;
+                    return tpl.result;
                 }
                 else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
                 {
@@ -668,14 +682,15 @@ namespace CasCap.Services
                             //todo: need to test resuming failed uploads
                             var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
                             //var bytes = File.ReadAllBytes("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
-                            tpl = await PostBytes<string>(Upload_URL, bytes, headers: headers);
+                            tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
+                            //if (tpl.error is object) throw new GooglePhotosAPIException(tpl.error);
                             if (tpl.httpStatusCode != HttpStatusCode.OK)
                             {
                                 //we were interrupted so query the status of the last upload
                                 headers = new List<(string name, string value)>();
                                 headers.Add((X_Goog_Upload_Command, "query"));
                                 _logger.LogDebug($"");
-                                tpl = await PostBytes<string>(Upload_URL, Array.Empty<byte>(), headers: headers);
+                                tpl = await PostBytes<string, Error>(Upload_URL, Array.Empty<byte>(), headers: headers);
 
                                 status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
                                 //Debug.WriteLine($"status={status}");
@@ -697,7 +712,7 @@ namespace CasCap.Services
                                     break;//this was the last one
                             }
                         }
-                        return tpl.obj;
+                        return tpl.result;
                     }
                 }
                 else

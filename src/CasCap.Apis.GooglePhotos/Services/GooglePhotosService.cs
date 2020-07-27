@@ -1,4 +1,5 @@
-﻿using CasCap.Messages;
+﻿using CasCap.Exceptions;
+using CasCap.Messages;
 using CasCap.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -85,8 +86,11 @@ namespace CasCap.Services
             if (downloadVideo) qs.Add("dv");
             if (downloadPhoto || qs.Count == 0) qs.Add("d");
             baseUrl += $"={string.Join("-", qs)}";
-            var tpl = await Get<byte[]>(baseUrl);
-            return tpl.obj;
+            var tpl = await Get<byte[], Error>(baseUrl);
+            if (tpl.error is object)
+                throw new GooglePhotosException(tpl.error);
+            else
+                return tpl.result;
         }
     }
 }

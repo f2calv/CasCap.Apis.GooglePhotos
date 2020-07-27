@@ -301,13 +301,32 @@ namespace CasCap.Models
         public MediaItem mediaItem { get; set; } = default!;
     }
 
+    public class Error
+    {
+        public Status? error { get; set; }
+    }
+
     //https://developers.google.com/photos/library/reference/rest/v1/Status
     public class Status
     {
         public int code { get; set; }
         public string? message { get; set; }
+        public string? status { get; set; }
         public List<object>? details { get; set; }
+        //public Detail?[] details { get; set; }
     }
+
+    //public class Detail
+    //{
+    //    public string? type { get; set; }
+    //    public Link?[] links { get; set; }
+    //}
+
+    //public class Link
+    //{
+    //    public string description { get; set; }
+    //    public string url { get; set; }
+    //}
 
     public class NewMediaItem
     {
