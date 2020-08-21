@@ -330,6 +330,7 @@ namespace CasCap.Services
         #endregion
 
         #region https://photoslibrary.googleapis.com/v1/mediaItems
+        //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
         //todo: add IPagable interface and merge with similar
         async Task<List<MediaItem>> _GetMediaItemsAsync(int pageSize, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
         {
@@ -365,7 +366,7 @@ namespace CasCap.Services
         }
 
         //todo: add IPagable interface and merge with similar
-        async Task<List<MediaItem>> _GetMediaItemsAsync(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
+        async Task<List<MediaItem>> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
         {
             if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
                 throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -404,7 +405,7 @@ namespace CasCap.Services
             => _GetMediaItemsAsync(pageSize, excludeNonAppCreatedData, RequestUris.GET_mediaItems, cancellationToken);
 
         public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-            => _GetMediaItemsAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
+            => _GetMediaItemsViaPOSTAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
 
         //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
         public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
@@ -511,7 +512,7 @@ namespace CasCap.Services
                     _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
                 }
             }
-            return _GetMediaItemsAsync(null, 100, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
+            return _GetMediaItemsViaPOSTAsync(null, 100, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
         }
 
         //would need renaming if made public
