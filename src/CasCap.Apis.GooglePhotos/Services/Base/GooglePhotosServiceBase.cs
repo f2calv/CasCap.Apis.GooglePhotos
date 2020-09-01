@@ -332,7 +332,7 @@ namespace CasCap.Services
         #region https://photoslibrary.googleapis.com/v1/mediaItems
         //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
         //todo: add IPagable interface and merge with similar
-        async Task<List<MediaItem>> _GetMediaItemsAsync(int pageSize, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
+        async Task<List<MediaItem>> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
         {
             if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
                 throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -340,7 +340,7 @@ namespace CasCap.Services
             var l = new List<MediaItem>();
             var pageToken = string.Empty;
             var pageNumber = 1;
-            while (pageToken is object && !cancellationToken.IsCancellationRequested)
+            while (pageToken is object && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
             {
                 var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
                 var tpl = await Get<mediaItemsResponse, Error>(_requestUri);
@@ -366,7 +366,7 @@ namespace CasCap.Services
         }
 
         //todo: add IPagable interface and merge with similar
-        async Task<List<MediaItem>> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, Filter? filters, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
+        async Task<List<MediaItem>> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
         {
             if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
                 throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -376,7 +376,7 @@ namespace CasCap.Services
             var l = new List<MediaItem>();
             var pageToken = string.Empty;
             var pageNumber = 1;
-            while (pageToken is object && !cancellationToken.IsCancellationRequested)
+            while (pageToken is object && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
             {
                 var req = new { albumId, pageSize, pageToken, filters };
                 var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req);
@@ -401,11 +401,11 @@ namespace CasCap.Services
             return l;
         }
 
-        public Task<List<MediaItem>> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-            => _GetMediaItemsAsync(pageSize, excludeNonAppCreatedData, RequestUris.GET_mediaItems, cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
+            => _GetMediaItemsAsync(pageSize, maxPageCount, excludeNonAppCreatedData, RequestUris.GET_mediaItems, cancellationToken);
 
-        public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-            => _GetMediaItemsViaPOSTAsync(albumId, pageSize, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
+            => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
 
         //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
         public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
@@ -453,22 +453,22 @@ namespace CasCap.Services
             return l;
         }
 
-        public Task<List<MediaItem>> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
-            => GetMediaItemsByFilterAsync(new Filter(startDate, endDate), cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+            => GetMediaItemsByFilterAsync(new Filter(startDate, endDate), maxPageCount, cancellationToken);
 
-        public Task<List<MediaItem>> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category, CancellationToken cancellationToken = default)
-            => GetMediaItemsByFilterAsync(new Filter(category), cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+            => GetMediaItemsByFilterAsync(new Filter(category), maxPageCount, cancellationToken);
 
-        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories, CancellationToken cancellationToken = default)
-            => GetMediaItemsByFilterAsync(new Filter(categories), cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+            => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
-        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories, CancellationToken cancellationToken = default)
-            => GetMediaItemsByFilterAsync(new Filter(categories), cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+            => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
-        public Task<List<MediaItem>> GetMediaItemsByFilterAsync(Filter filter, CancellationToken cancellationToken = default)
-            => _GetMediaItemsByFilterAsync(filter, cancellationToken);
+        public Task<List<MediaItem>> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+            => _GetMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
 
-        Task<List<MediaItem>> _GetMediaItemsByFilterAsync(Filter filter, CancellationToken cancellationToken)
+        Task<List<MediaItem>> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
         {
             //validate/tidy outgoing filter object
             var contentFilter = filter.contentFilter;
@@ -512,7 +512,7 @@ namespace CasCap.Services
                     _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
                 }
             }
-            return _GetMediaItemsViaPOSTAsync(null, 100, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
+            return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
         }
 
         //would need renaming if made public
