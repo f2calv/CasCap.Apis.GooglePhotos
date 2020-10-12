@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
@@ -35,10 +35,15 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.49.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.7" />
-    <PackageReference Include="CasCap.Common.Net" Version="1.0.10" />
+    <PackageReference Include="CasCap.Common.Net" Version="1.0.13" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.11" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.8" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="5.0.0-rc.1.*" />
   </ItemGroup>
 
 </Project>
