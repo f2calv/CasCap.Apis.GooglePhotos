@@ -31,7 +31,6 @@
     <ProjectReference Include="..\CasCap.Apis.GooglePhotos\CasCap.Apis.GooglePhotos.csproj" />
   </ItemGroup>
 
-
   <ItemGroup>
     <Content Include="appsettings.Test.json" CopyToOutputDirectory="Always" />
   </ItemGroup>
