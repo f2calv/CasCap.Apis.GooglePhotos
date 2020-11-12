@@ -52,7 +52,7 @@ namespace CasCap.Services
 
         public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
         {
-            var filePaths = Directory.GetFiles(folderPath, searchPattern);
+            var filePaths = searchPattern is object ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
             return _UploadMultiple(filePaths, albumId, uploadMethod);
         }
 
