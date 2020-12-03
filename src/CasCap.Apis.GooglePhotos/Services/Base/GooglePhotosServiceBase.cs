@@ -149,7 +149,8 @@ namespace CasCap.Services
                 GetScopes(),
                 _options.User,
                 CancellationToken.None,
-                dataStore);
+                dataStore, 
+                _options.OAuth2CodeReceiver);
 
             _logger.LogDebug("Authorisation granted or not required (if the saved access token already available)");
 
