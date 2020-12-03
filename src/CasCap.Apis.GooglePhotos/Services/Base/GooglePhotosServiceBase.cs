@@ -234,7 +234,7 @@ namespace CasCap.Services
                     if (!tpl.result.sharedAlbums.IsNullOrEmpty()) batch = tpl.result.sharedAlbums ?? new List<Album>();
                     l.AddRange(batch);
                     if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
-                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count, batch));
                     pageToken = tpl.result.nextPageToken;
                     pageNumber++;
                 }
@@ -352,7 +352,7 @@ namespace CasCap.Services
                     if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                     l.AddRange(batch);
                     if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
-                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count, batch)
                         {
                             minDate = batch.Min(p => p.mediaMetadata.creationTime),
                             maxDate = batch.Max(p => p.mediaMetadata.creationTime),
@@ -388,7 +388,7 @@ namespace CasCap.Services
                     if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                     l.AddRange(batch);
                     if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
-                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count, batch)
                         {
                             minDate = batch.Min(p => p.mediaMetadata.creationTime),
                             maxDate = batch.Max(p => p.mediaMetadata.creationTime),
@@ -448,7 +448,7 @@ namespace CasCap.Services
                             _logger.LogWarning($"{result.status}");//we highlight if any objects returned a non-null status object
                     }
                     if (batch.Key + 1 != batches.Count)
-                        RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, l.Count));
+                        RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, l.Count, null));
                 }
             }
             return l;
