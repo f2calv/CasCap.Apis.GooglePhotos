@@ -3,6 +3,7 @@ using CasCap.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,11 +25,13 @@ namespace CasCap
             if (new[] { _user, _clientId, _clientSecret }.Any(p => string.IsNullOrWhiteSpace(p)))
             {
                 Console.WriteLine("Please populate authentication details to continue...");
+                Debugger.Break();
                 return;
             }
             if (!Directory.Exists(_testFolder))
             {
                 Console.WriteLine($"Cannot find folder '{_testFolder}'");
+                Debugger.Break();
                 return;
             }
 
