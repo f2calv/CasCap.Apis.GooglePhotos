@@ -9,8 +9,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>Alex Vincent</Authors>
-    <Copyright>Alex Vincent</Copyright>
     <Description>Fully featured .NET library/wrapper for the Google Photos REST API.</Description>
     <PackageDescription>
       $(Description)
@@ -24,20 +22,13 @@
 
       For usage examples see the docs on github, https://github.com/f2calv/CasCap.Apis.GooglePhotos
     </PackageDescription>
-    <RepositoryUrl></RepositoryUrl>
     <PackageTags>google, photos, rest, api, wrapper</PackageTags>
-    <PackageProjectUrl>https://github.com/f2calv/CasCap.Apis.GooglePhotos</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/f2calv/CasCap.Apis.GooglePhotos</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.51.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="CasCap.Common.Net" Version="1.0.31" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="5.0.1" />
   </ItemGroup>
