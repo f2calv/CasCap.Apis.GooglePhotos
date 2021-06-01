@@ -124,7 +124,14 @@ public class Startup
 }
 ```
 
-Using appsettings.json is generally the best option however remember the Client ID & Client Secret should be stored securely outside of source control via [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager), [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) or equivalent.
+Using appsettings.json is generally the best option however remember the Client ID & Client Secret should be stored securely outside of source control via [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) (or [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager) as shown below).
+
+```pwsh
+dotnet user-secrets init
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "your.email@mydomain.com" #replace with **your** info
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com" #replace with **your** info
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "abcabcabcabcabcabcabcabc" #replace with **your** info
+```
 
 After calling AddGooglePhotos in the ConfigureServices method of Startup.cs you can then call upon the GooglePhotosService within your own services shown below.
 
