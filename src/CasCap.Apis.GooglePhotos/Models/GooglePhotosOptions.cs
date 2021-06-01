@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using Google.Apis.Auth.OAuth2;
+
 namespace CasCap.Models
 {
     [Serializable]
@@ -46,5 +48,11 @@ namespace CasCap.Models
         /// e.g. Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth");
         /// </summary>
         public string FileDataStoreFullPathDefault { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth"); } }
+
+        /// <summary>
+        /// Google OAuth2 code receiver. Set this for providing your own code receiver
+        /// If not set it will use the default used in <see cref="GoogleWebAuthorizationBroker.AuthorizeAsync"></see>
+        /// </summary>
+        public ICodeReceiver? OAuth2CodeReceiver { get; set; }
     }
 }
