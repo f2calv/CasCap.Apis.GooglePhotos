@@ -8,7 +8,7 @@
 [cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
 [cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
 
-[![Build Status][azdo-badge]][azdo-url] <!-- ![Code Coverage][azdo-coverage-url] --> [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+![CI](https://github.com/f2calv/CasCap.Apis.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Apis.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Apis.GooglePhotos?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Apis.GooglePhotos&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Apis.GooglePhotos) [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
 
 > Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
@@ -255,7 +255,7 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 
 - [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles the [OAuth 2.0 authentication](https://developers.google.com/identity/protocols/oauth2), see the [project site](https://github.com/googleapis/google-api-dotnet-client).
 - [Polly](https://www.nuget.org/packages/Polly/) is a .NET resilience and transient-fault-handling library that handles retry, see [project site](https://github.com/App-vNext/Polly).
-- [CasCap.Common.Extensions](https://www.nuget.org/packages/CasCap.Common.Extensions/) and [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
+- [CasCap.Apis.GooglePhotos.Extensions](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos.Extensions/) and [CasCap.Apis.GooglePhotos.Net](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
 
 ### Misc Tips
 
