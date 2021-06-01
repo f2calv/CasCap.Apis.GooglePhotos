@@ -619,7 +619,7 @@ namespace CasCap.Models
         public float focalLength { get; set; }
         public float apertureFNumber { get; set; }
         public int isoEquivalent { get; set; }
-        public float exposureTime { get; set; }
+        public string? exposureTime { get; set; }
     }
 
     public class ContributorInfo

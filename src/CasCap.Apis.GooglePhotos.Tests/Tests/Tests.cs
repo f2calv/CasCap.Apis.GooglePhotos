@@ -1,4 +1,5 @@
 ﻿using CasCap.Common.Extensions;
+using CasCap.Common.Testing;
 using CasCap.Models;
 using CasCap.Services;
 using System;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Apis.GooglePhotos.Tests
 {
     /// <summary>
@@ -14,9 +16,11 @@ namespace CasCap.Apis.GooglePhotos.Tests
     /// </summary>
     public class Tests : TestBase
     {
+        public Tests(ITestOutputHelper output) : base(output) { }
+
         string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task LoginTest()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -25,7 +29,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
 
         string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
-        [SkipIfAzureDevOpsBuildTheory, Trait("Type", nameof(GooglePhotosService))]
+        [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
         [InlineData(GooglePhotosUploadMethod.Simple)]
         [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
         [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
@@ -43,7 +47,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.NotNull(newMediaItemResult.mediaItem.id);
         }
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task UploadSingleTests()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -82,7 +86,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.True(albumMediaItems.Count == 1);
         }
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task UploadMultipleTests()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -150,7 +154,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.True(true);
         }
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task FilteringTests()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -213,7 +217,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.True(true);
         }
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task EnrichmentsTests()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -253,7 +257,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             Assert.NotNull(enrichmentId2);
         }
 
-        [SkipIfAzureDevOpsBuildFact]
+        [SkipIfCIBuildFact]
         public async Task SharingTests()
         {
             var loginResult = await _googlePhotosSvc.LoginAsync();

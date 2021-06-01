@@ -1,8 +1,8 @@
-﻿using CasCap.Common.Logging;
-using CasCap.Services;
+﻿using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Xunit.Abstractions;
 namespace CasCap.Apis.GooglePhotos.Tests
 {
     public abstract class TestBase
@@ -11,7 +11,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
 
         protected GooglePhotosService _googlePhotosSvc;
 
-        public TestBase()
+        public TestBase(ITestOutputHelper output)
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: true)
@@ -22,11 +22,7 @@ namespace CasCap.Apis.GooglePhotos.Tests
             //initiate ServiceCollection w/logging
             var services = new ServiceCollection()
                 .AddSingleton<IConfiguration>(configuration)
-                .AddLogging(logging =>
-                {
-                    logging.AddDebug();
-                    ApplicationLogging.LoggerFactory = logging.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-                });
+                .AddXUnitLogging(output);
 
             _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
 
