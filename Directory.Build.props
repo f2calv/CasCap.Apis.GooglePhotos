@@ -5,6 +5,7 @@
     <LangVersion>9.0</LangVersion>
     <!--nullable we enable on a per project basis-->
     <!--<Nullable>enable</Nullable>-->
+    <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup>

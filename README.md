@@ -262,7 +262,7 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 
 - [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles the [OAuth 2.0 authentication](https://developers.google.com/identity/protocols/oauth2), see the [project site](https://github.com/googleapis/google-api-dotnet-client).
 - [Polly](https://www.nuget.org/packages/Polly/) is a .NET resilience and transient-fault-handling library that handles retry, see [project site](https://github.com/App-vNext/Polly).
-- [CasCap.Apis.GooglePhotos.Extensions](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos.Extensions/) and [CasCap.Apis.GooglePhotos.Net](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
+- [CasCap.Common.Extensions](https://www.nuget.org/packages/CasCap.Common.Extensions/) and [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
 
 ### Misc Tips
 
