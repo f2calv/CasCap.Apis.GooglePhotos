@@ -16,7 +16,7 @@ trigger:
     - feature/*
   paths:
     exclude:
-    - .azure-pipelines
+    - .github
     - samples
     - LICENSE
     - README.md
