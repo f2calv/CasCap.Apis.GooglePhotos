@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 namespace CasCap.Apis.GooglePhotos.Tests
 {
     /// <summary>
@@ -15,6 +16,8 @@ namespace CasCap.Apis.GooglePhotos.Tests
     /// </summary>
     public class Tests : TestBase
     {
+        public Tests(ITestOutputHelper output) : base(output) { }
+
         string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
 
         [SkipIfCIBuildFact]
