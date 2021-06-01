@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="1.0.15" />
+    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="1.0.16" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,4 @@
-﻿using CasCap.Common.Logging;
-using CasCap.Services;
+﻿using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
