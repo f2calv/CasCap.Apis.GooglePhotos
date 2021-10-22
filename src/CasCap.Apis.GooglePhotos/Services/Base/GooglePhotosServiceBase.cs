@@ -44,8 +44,8 @@ namespace CasCap.Services
             )
         {
             _logger = logger;
-            _options = options.Value;// ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
-            _client = client ?? throw new ArgumentNullException($"{nameof(HttpClient)} cannot be null!");
+            _options = options.Value;// ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
+            _client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
         }
 
         protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
@@ -54,9 +54,9 @@ namespace CasCap.Services
         protected virtual void RaiseUploadProgressEvent(UploadProgressArgs args) => UploadProgressEvent?.Invoke(this, args);
         public event EventHandler<UploadProgressArgs>? UploadProgressEvent;
 
-        public bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
+        public static bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
 
-        public bool IsFileUploadableByExtension(string extension)
+        public static bool IsFileUploadableByExtension(string extension)
         {
             if (IsImage(extension))
                 return true;
@@ -65,9 +65,9 @@ namespace CasCap.Services
             return false;
         }
 
-        bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
+        static bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
 
-        static HashSet<string> AcceptedMimeTypesImage = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        static readonly HashSet<string> AcceptedMimeTypesImage = new(StringComparer.OrdinalIgnoreCase)
         {
             { "image/bmp" },
             { "image/gif" },
@@ -80,10 +80,10 @@ namespace CasCap.Services
             { "image/webp" },
         };
 
-        bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
+        static bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
 
         //todo: do we need to handle the mime types in a more forgiving way?
-        static HashSet<string> AcceptedMimeTypesVideo = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        static readonly HashSet<string> AcceptedMimeTypesVideo = new(StringComparer.OrdinalIgnoreCase)
         {
             { "video/3gpp" },
             { "video/3gpp2" },
@@ -101,13 +101,13 @@ namespace CasCap.Services
             { "video/x-ms-wmv" },
         };
 
-        static Dictionary<GooglePhotosScope, string> dScopes = new Dictionary<GooglePhotosScope, string>
+        static readonly Dictionary<GooglePhotosScope, string> dScopes = new()
         {
-            { GooglePhotosScope.ReadOnly , "https://www.googleapis.com/auth/photoslibrary.readonly"},
-            { GooglePhotosScope.AppendOnly , "https://www.googleapis.com/auth/photoslibrary.appendonly"},
-            { GooglePhotosScope.AppCreatedData , "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata"},
-            { GooglePhotosScope.Access , "https://www.googleapis.com/auth/photoslibrary"},
-            { GooglePhotosScope.Sharing , "https://www.googleapis.com/auth/photoslibrary.sharing"}
+            { GooglePhotosScope.ReadOnly, "https://www.googleapis.com/auth/photoslibrary.readonly" },
+            { GooglePhotosScope.AppendOnly, "https://www.googleapis.com/auth/photoslibrary.appendonly" },
+            { GooglePhotosScope.AppCreatedData, "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata" },
+            { GooglePhotosScope.Access, "https://www.googleapis.com/auth/photoslibrary" },
+            { GooglePhotosScope.Sharing, "https://www.googleapis.com/auth/photoslibrary.sharing" }
         };
 
         public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null)
@@ -125,17 +125,17 @@ namespace CasCap.Services
 
         public async Task<bool> LoginAsync(GooglePhotosOptions options)
         {
-            _options = options ?? throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
+            _options = options ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
             return await LoginAsync();
         }
 
         public async Task<bool> LoginAsync()
         {
-            if (_options is null) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
-            if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
-            if (_options.Scopes.IsNullOrEmpty()) throw new ArgumentNullException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
+            if (_options is null) throw new ArgumentNullException(nameof(_options), $"{nameof(GooglePhotosOptions)}.{nameof(_options)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException(nameof(_options.ClientId), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
+            if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException(nameof(_options.ClientSecret), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
+            if (_options.Scopes.IsNullOrEmpty()) throw new ArgumentNullException(nameof(_options.Scopes), $"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
 
             var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
 
@@ -247,7 +247,7 @@ namespace CasCap.Services
         string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
         {
             var queryParams = new Dictionary<string, string>(3);
-            if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.ToString());
+            if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
             if (excludeNonAppCreatedData) queryParams.Add(nameof(excludeNonAppCreatedData), excludeNonAppCreatedData.ToString());
             if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
             var url = QueryHelpers.AddQueryString(uri, queryParams);
@@ -559,7 +559,7 @@ namespace CasCap.Services
         async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition)
         {
             if (uploadItems.IsNullOrEmpty())
-                throw new ArgumentNullException($"Invalid {nameof(uploadItems)} quantity, must be >= 1");
+                throw new ArgumentNullException(nameof(uploadItems), $"Invalid {nameof(uploadItems)} quantity, must be >= 1");
             var newMediaItems = new List<NewMediaItem>(uploadItems.Count);
             foreach (var mediaItem in uploadItems)
             {
@@ -607,8 +607,10 @@ namespace CasCap.Services
             if (IsVideo(Path.GetExtension(path)) && size > maxSizeVideoBytes)
                 throw new NotSupportedException($"Media file {path} is too big for known upload limits of {maxSizeVideoBytes} bytes!");
 
-            var headers = new List<(string name, string value)>();
-            headers.Add((X_Goog_Upload_Content_Type, GetMimeType()));
+            var headers = new List<(string name, string value)>
+            {
+                (X_Goog_Upload_Content_Type, GetMimeType())
+            };
             if (uploadMethod == GooglePhotosUploadMethod.Simple)
                 headers.Add((X_Goog_Upload_Protocol, "raw"));
             else if (new[] { GooglePhotosUploadMethod.ResumableSingle, GooglePhotosUploadMethod.ResumableMultipart }.Contains(uploadMethod))
@@ -651,14 +653,16 @@ namespace CasCap.Services
                     if (tpl.httpStatusCode != HttpStatusCode.OK)
                     {
                         //we were interrupted so query the status of the last upload
-                        headers = new List<(string name, string value)>();
-                        headers.Add((X_Goog_Upload_Command, "query"));
+                        headers = new List<(string name, string value)>
+                        {
+                            (X_Goog_Upload_Command, "query")
+                        };
 
                         tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
                         if (tpl.error is object) throw new GooglePhotosException(tpl.error);
 
-                        status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                        var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                        _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                        _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                     }
 
                     return tpl.result;
@@ -670,57 +674,59 @@ namespace CasCap.Services
                     var retryLimit = 10;//todo: move this into settings
                     var batchCount = Math.Ceiling(size / (double)Upload_Chunk_Granularity);
                     var batchIndex = 0;
-                    using (var fs = File.OpenRead(path))
-                    using (var reader = new BinaryReader(fs))
+                    using var fs = File.OpenRead(path);
+                    using var reader = new BinaryReader(fs);
+                    while (true)
                     {
-                        while (true)
+                        attemptCount++;
+                        if (attemptCount > retryLimit)
+                            return null;
+
+                        //var lastChunk = offset + Upload_Chunk_Granularity >= size;
+                        var lastChunk = batchIndex + 1 == batchCount;
+
+                        headers = new List<(string name, string value)>
                         {
-                            attemptCount++;
-                            if (attemptCount > retryLimit)
-                                return null;
+                            (X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"),
+                            (X_Goog_Upload_Offset, offset.ToString())
+                        };
 
-                            //var lastChunk = offset + Upload_Chunk_Granularity >= size;
-                            var lastChunk = batchIndex + 1 == batchCount;
-
-                            headers = new List<(string name, string value)>();
-                            headers.Add((X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"));
-                            headers.Add((X_Goog_Upload_Offset, offset.ToString()));
-
-                            //todo: need to test resuming failed uploads
-                            var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
-                            //var bytes = File.ReadAllBytes("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
-                            tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
-                            //if (tpl.error is object) throw new GooglePhotosAPIException(tpl.error);
-                            if (tpl.httpStatusCode != HttpStatusCode.OK)
+                        //todo: need to test resuming failed uploads
+                        var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
+                        //var bytes = File.ReadAllBytes("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
+                        tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
+                        //if (tpl.error is object) throw new GooglePhotosAPIException(tpl.error);
+                        if (tpl.httpStatusCode != HttpStatusCode.OK)
+                        {
+                            //we were interrupted so query the status of the last upload
+                            headers = new List<(string name, string value)>
                             {
-                                //we were interrupted so query the status of the last upload
-                                headers = new List<(string name, string value)>();
-                                headers.Add((X_Goog_Upload_Command, "query"));
-                                _logger.LogDebug($"");
-                                tpl = await PostBytes<string, Error>(Upload_URL, Array.Empty<byte>(), headers: headers);
+                                (X_Goog_Upload_Command, "query")
+                            };
+                            _logger.LogDebug($"");
+                            tpl = await PostBytes<string, Error>(Upload_URL, Array.Empty<byte>(), headers: headers);
 
-                                status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                                //Debug.WriteLine($"status={status}");
-                                var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
-                                //Debug.WriteLine($"bytesReceived={bytesReceived}");
-                                Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
-                            }
-                            else
-                            {
-                                attemptCount = 0;//reset retry count
-                                offset += bytes.Length;
-                                RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
-                                batchIndex++;
-                                //if (callback is object)
-                                //    callback(bytes.Length);
-                                //if (bytes.Length < Upload_Chunk_Granularity)
-                                //    break;//this was the last one
-                                if (lastChunk)
-                                    break;//this was the last one
-                            }
+                            status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                            _logger.LogTrace($"status={status}");
+                            var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                            //Debug.WriteLine($"bytesReceived={bytesReceived}");
+                            Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
                         }
-                        return tpl.result;
+                        else
+                        {
+                            attemptCount = 0;//reset retry count
+                            offset += bytes.Length;
+                            RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
+                            batchIndex++;
+                            //if (callback is object)
+                            //    callback(bytes.Length);
+                            //if (bytes.Length < Upload_Chunk_Granularity)
+                            //    break;//this was the last one
+                            if (lastChunk)
+                                break;//this was the last one
+                        }
                     }
+                    return tpl.result;
                 }
                 else
                     throw new NotSupportedException($"not supported upload type '{uploadMethod}'");
@@ -739,7 +745,7 @@ namespace CasCap.Services
             }
         }
 
-        AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
+        static AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
         {
             AlbumPosition? albumPosition = null;
             if (string.IsNullOrWhiteSpace(albumId)

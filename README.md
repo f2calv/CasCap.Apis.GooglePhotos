@@ -8,7 +8,9 @@
 [cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
 [cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
 
-[![Build Status][azdo-badge]][azdo-url] <!-- ![Code Coverage][azdo-coverage-url] --> [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+![CI](https://github.com/f2calv/CasCap.Apis.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Apis.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Apis.GooglePhotos?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Apis.GooglePhotos&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Apis.GooglePhotos) [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+
+> Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
 This is an _unofficial_ Google Photos REST API library targeting .NET Standard 2.0.
 
@@ -122,7 +124,14 @@ public class Startup
 }
 ```
 
-Using appsettings.json is generally the best option however remember the Client ID & Client Secret should be stored securely outside of source control via [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager), [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) or equivalent.
+Using appsettings.json is generally the best option however remember the Client ID & Client Secret should be stored securely outside of source control via [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) (or [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager) as shown below).
+
+```pwsh
+dotnet user-secrets init
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "your.email@mydomain.com" #replace with **your** info
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com" #replace with **your** info
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "abcabcabcabcabcabcabcabc" #replace with **your** info
+```
 
 After calling AddGooglePhotos in the ConfigureServices method of Startup.cs you can then call upon the GooglePhotosService within your own services shown below.
 

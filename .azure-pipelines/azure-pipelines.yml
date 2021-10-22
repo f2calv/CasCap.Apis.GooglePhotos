@@ -11,12 +11,13 @@ trigger:
   batch: true
   branches:
     include:
-    - master
+    - main
     - hotfix/*
     - feature/*
   paths:
     exclude:
-    - .azure-pipelines
+    - .github
+    - samples
     - LICENSE
     - README.md
 
@@ -28,18 +29,16 @@ resources:
     endpoint: github.com_f2calv
 
 variables:
-- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   - group: nuget-prod
-- ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+- ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   - group: nuget-dev
 
 pool:
   vmImage: ubuntu-latest
 
-#extends:
-#  template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
-steps:
-- template: pipelines/dotnet.publish.nuget-v1.yml@sharedTemplates
+extends:
+  template: pipelines/dotnet-publish-nuget-v1.yml@sharedTemplates
   parameters:
     BuildConfiguration: ${{ parameters.BuildConfiguration }}
     CoverageInclude: '[CasCap.*]*'

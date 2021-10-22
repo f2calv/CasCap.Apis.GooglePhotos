@@ -4,11 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$(MSBuildVersion) &gt;= 16.8.0">$(TargetFrameworks);net5.0</TargetFrameworks>
-    <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CasCap.Apis.GooglePhotos" Version="1.0.12" />
+    <ProjectReference Include="..\..\src\CasCap.Apis.GooglePhotos\CasCap.Apis.GooglePhotos.csproj" />
   </ItemGroup>
 
 </Project>

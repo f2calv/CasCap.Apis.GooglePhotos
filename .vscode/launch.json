@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/samples/ConsoleApp/bin/Debug/netcoreapp3.1/ConsoleApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/samples/ConsoleApp",
+            "console": "externalTerminal",
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false,
+                "processExit": false
+            }
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

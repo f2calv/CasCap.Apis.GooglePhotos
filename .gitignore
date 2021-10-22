@@ -361,10 +361,3 @@ FodyWeavers.xsd
 
 # IdentityServer4 key
 *.rsa
-
-# alex custom
-app/
-_DockerCompose/azurite
-_DockerCompose/redis
-#local.settings.json
-.vscode/
