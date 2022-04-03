@@ -4,10 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       BuildConfiguration:
+        type: string
         description: Build Configuration
         required: true
         default: Release
       PublishPreview:
+        type: boolean
         description: Publish preview branch?
         required: true
         default: false
