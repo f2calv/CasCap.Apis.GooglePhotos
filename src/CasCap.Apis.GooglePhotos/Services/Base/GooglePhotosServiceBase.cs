@@ -425,7 +425,7 @@ namespace CasCap.Services
             var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
             foreach (var batch in batches)
             {
-                //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString here wait for .net 5
+                //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString
                 //var queryParams = new Dictionary<string, string>(batch.Value.Length);
                 //foreach (var mediaItemId in batch.Value)
                 //    queryParams.Add(nameof(mediaItemIds), mediaItemId);
