@@ -150,14 +150,12 @@ jobs:
           gpr push ${{ github.workspace }}/src/**/*.nupkg -k ${{ secrets.GITHUB_TOKEN }}
         if: github.ref == 'refs/heads/main'
 
-      - name: create-release ${{ steps.gitversion.outputs.SemVer }}
-        uses: actions/create-release@v1 #todo: this is deprecated, replace with another action later...?
+      - name: create release ${{ needs.gitversion.outputs.FullSemVer }}
+        uses: softprops/action-gh-release@v1
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: ${{ steps.gitversion.outputs.SemVer }}
-          release_name: Release ${{ steps.gitversion.outputs.SemVer }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ needs.gitversion.outputs.FullSemVer }}
+          name: Release ${{ needs.gitversion.outputs.FullSemVer }}
 
   SonarQube:
     runs-on: windows-latest
