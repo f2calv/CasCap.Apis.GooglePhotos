@@ -12,7 +12,9 @@
 
 > Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
-This is an _unofficial_ Google Photos REST API library targeting .NET Standard 2.0. If you find this library useful then please give it a thumbs-up by giving this repository a :star: ...
+This is an _unofficial_ Google Photos REST API library targeting .NET Standard 2.0.
+
+If you find this library of use then please give it a thumbs-up by giving this repository a :star: ... :wink:
 
 If you wish to interact with your Google Photos media items/albums then there are official [PHP and Java Client Libraries](https://developers.google.com/photos/library/guides/client-libraries). However if you're looking for a comprehensive .NET library then you were out of luck... until now :)
 
