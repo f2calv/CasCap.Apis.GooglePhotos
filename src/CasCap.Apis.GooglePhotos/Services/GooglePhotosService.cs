@@ -1,9 +1,4 @@
-﻿using CasCap.Exceptions;
-using CasCap.Messages;
-using CasCap.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 /// <summary>
 /// This class chains together the inherited GooglePhotosServiceBase REST methods into more useful combos/actions.

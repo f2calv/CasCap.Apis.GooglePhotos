@@ -1,5 +1,4 @@
-﻿using CasCap.Models;
-namespace CasCap.Exceptions;
+﻿namespace CasCap.Exceptions;
 
 public class GooglePhotosException : Exception
 {

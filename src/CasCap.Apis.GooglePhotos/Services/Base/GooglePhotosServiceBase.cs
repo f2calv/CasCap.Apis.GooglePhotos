@@ -1,12 +1,7 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Exceptions;
-using CasCap.Messages;
-using CasCap.Models;
-using Google.Apis.Auth.OAuth2;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MimeTypes;
 using System.Diagnostics;
 using System.Net;

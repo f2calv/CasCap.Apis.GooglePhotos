@@ -1,8 +1,4 @@
-﻿using CasCap.Models;
-using CasCap.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using Polly;
+﻿using Polly;
 using System.Net;
 using System.Net.Http.Headers;
 namespace Microsoft.Extensions.DependencyInjection;
