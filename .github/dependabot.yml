@@ -7,28 +7,9 @@ updates:
     time: "04:00"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: CasCap.Common.Net
-    versions:
-    - 1.0.22
-    - 1.0.24
   - dependency-name: Microsoft.NET.Test.Sdk
-    versions:
-    - 16.9.1
-  - dependency-name: coverlet.collector
-    versions:
-    - 3.0.2
-    - 3.0.3
+  - dependency-name: Newtonsoft.Json
   - dependency-name: coverlet.msbuild
-    versions:
-    - 3.0.2
-    - 3.0.3
-  - dependency-name: CasCap.Apis.GooglePhotos
-    versions:
-    - 1.0.14
-    - 1.0.15
-  - dependency-name: Google.Apis.Auth
-    versions:
-    - 1.50.0
-  - dependency-name: MimeTypeMapOfficial
-    versions:
-    - 1.0.15
+  - dependency-name: coverlet.collector
+  - dependency-name: xunit
+  - dependency-name: xunit.runner.visualstudio

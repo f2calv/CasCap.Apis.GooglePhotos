@@ -1,10 +1,9 @@
-﻿namespace CasCap.Interfaces
+﻿namespace CasCap.Interfaces;
+
+public interface IPagingToken
 {
-    public interface IPagingToken
-    {
-        /// <summary>
-        /// A continuation token to get the next page of the results.
-        /// </summary>
-        string? nextPageToken { get; set; }
-    }
+    /// <summary>
+    /// A continuation token to get the next page of the results.
+    /// </summary>
+    string? nextPageToken { get; set; }
 }

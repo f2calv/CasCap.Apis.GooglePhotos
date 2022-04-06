@@ -1,14 +1,11 @@
-﻿using CasCap.Models;
-using System;
-namespace CasCap.Exceptions
-{
-    public class GooglePhotosException : Exception
-    {
-        public GooglePhotosException() { }
+﻿namespace CasCap.Exceptions;
 
-        public GooglePhotosException(Error error)
-            : base(error is object && error.error is object && error.error.message is object ? error.error.message : "unknown")
-        {
-        }
+public class GooglePhotosException : Exception
+{
+    public GooglePhotosException() { }
+
+    public GooglePhotosException(Error error)
+        : base(error is not null && error.error is not null && error.error.message is not null ? error.error.message : "unknown")
+    {
     }
 }

@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <RootNamespace>CasCap</RootNamespace>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <!--nullable we enable on a per project basis-->
     <!--<Nullable>enable</Nullable>-->
     <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -36,7 +37,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <!-- IDE1006 - suppress roslyn naming convention messages -->
     <!-- IDE0079 - Remove unnecessary suppression -->
-    <NoWarn>IDE1006;IDE0079</NoWarn>
+    <!-- IDE0042 - Variable declaration can be deconstructed -->
+    <NoWarn>IDE1006;IDE0079;IDE0042</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <!-- suppress 'Unreachable code detected' -->
@@ -44,7 +46,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
