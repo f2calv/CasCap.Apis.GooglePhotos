@@ -8,7 +8,7 @@ public static class DI
     public static void AddGooglePhotos(this IServiceCollection services)
         => services.AddGooglePhotos(_ => { });
 
-    static string sectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+    static readonly string sectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
 
     public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configure)
     {
@@ -21,8 +21,8 @@ public static class DI
         {
             var configuration = s.GetRequiredService<IConfiguration>();
             var options = configuration.GetSection(sectionKey).Get<GooglePhotosOptions>();
-            options = options ?? new GooglePhotosOptions();//we use default BaseAddress if no config object injected in
-                client.BaseAddress = new Uri(options.BaseAddress);
+            options ??= new GooglePhotosOptions();//we use default BaseAddress if no config object injected in
+            client.BaseAddress = new Uri(options.BaseAddress);
             client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));

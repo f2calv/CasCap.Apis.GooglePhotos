@@ -180,7 +180,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     public async Task<Album?> GetSharedAlbumAsync(string sharedToken)
     {
         var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_sharedAlbum, sharedToken));
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
 
         return tpl.result;
     }
@@ -209,12 +209,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var l = new List<Album>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is object && !cancellationToken.IsCancellationRequested)
+        while (pageToken is not null && !cancellationToken.IsCancellationRequested)
         {
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
             var tpl = await Get<albumsGetResponse, Error>(_requestUri);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-            else if (tpl.result is object)//to hide nullability warning
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+            else if (tpl.result is not null)//to hide nullability warning
             {
                 var batch = new List<Album>(pageSize);
                 if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? new List<Album>();
@@ -238,7 +238,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (excludeNonAppCreatedData) queryParams.Add(nameof(excludeNonAppCreatedData), excludeNonAppCreatedData.ToString());
         if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
         var url = QueryHelpers.AddQueryString(uri, queryParams);
-        _logger.LogDebug(url);
+        _logger.LogDebug("{methodName}, {url}", nameof(GetUrl), url);
         return url;
     }
 
@@ -246,7 +246,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         var req = new { album = new Album { title = title } };
         var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req);
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
@@ -260,7 +260,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             var req = new { mediaItemIds = batch.Value };
             var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
@@ -275,7 +275,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             var req = new { mediaItemIds = batch.Value };
             var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
@@ -283,36 +283,36 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
     {
         var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition));
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-        return tpl.result is object && tpl.result.enrichmentItem is object ? tpl.result.enrichmentItem : null;
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+        return tpl.result is not null && tpl.result.enrichmentItem is not null ? tpl.result.enrichmentItem : null;
     }
 
     public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true)
     {
         var req = new { sharedAlbumOptions = new SharedAlbumOptions { isCollaborative = isCollaborative, isCommentable = isCommentable } };
         var tpl = await PostJson<sharedAlbumResponse, Error>(string.Format(RequestUris.POST_share, albumId), req);
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-        return tpl.result is object && tpl.result.shareInfo is object ? tpl.result.shareInfo : null;
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+        return tpl.result is not null && tpl.result.shareInfo is not null ? tpl.result.shareInfo : null;
     }
 
     public async Task<bool> UnShareAlbumAsync(string albumId)
     {
         var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_unshare, albumId), new { });
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return true;
     }
 
     public async Task<Album?> JoinSharedAlbumAsync(string shareToken)
     {
         var tpl = await PostJson<Album, Error>(RequestUris.POST_sharedAlbums_join, new { shareToken });
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
     public async Task<bool> LeaveSharedAlbumAsync(string shareToken)
     {
         var tpl = await PostJson<string, Error>(RequestUris.POST_sharedAlbums_leave, new { shareToken });
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return true;
     }
     #endregion
@@ -328,12 +328,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var l = new List<MediaItem>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is object && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
+        while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
         {
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
             var tpl = await Get<mediaItemsResponse, Error>(_requestUri);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-            else if (tpl.result is object)
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+            else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
@@ -359,17 +359,17 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
-        if (filters is object && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
+        if (filters is not null && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
 
         var l = new List<MediaItem>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is object && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
+        while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
         {
             var req = new { albumId, pageSize, pageToken, filters };
             var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-            else if (tpl.result is object)
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+            else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
@@ -399,7 +399,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
     {
         var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
@@ -423,8 +423,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
             var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString().Substring(1)}";
             var tpl = await Get<mediaItemsGetResponse, Error>(url);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
-            else if (tpl.result is object)
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+            else if (tpl.result is not null)
             {
                 //l.AddRange(res.obj.mediaItemResults);
                 foreach (var result in tpl.result.mediaItemResults)
@@ -432,7 +432,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     if (result.status is null)
                         l.Add(result.mediaItem);
                     else
-                        _logger.LogWarning($"{result.status}");//we highlight if any objects returned a non-null status object
+                        _logger.LogWarning("{methodName}, status={status}", nameof(GetMediaItemsByIdsAsync), result.status);//we highlight if any objects returned a non-null status object
                 }
                 if (batch.Key + 1 != batches.Count)
                     RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, l.Count));
@@ -460,46 +460,30 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         //validate/tidy outgoing filter object
         var contentFilter = filter.contentFilter;
-        if (contentFilter is object)
+        if (contentFilter is not null)
         {
             if (contentFilter.includedContentCategories.IsNullOrEmpty()) contentFilter.includedContentCategories = null;
             if (contentFilter.excludedContentCategories.IsNullOrEmpty()) contentFilter.excludedContentCategories = null;
             if (contentFilter.includedContentCategories is null && contentFilter.excludedContentCategories is null)
-            {
-                contentFilter = null;
                 _logger.LogDebug($"{nameof(contentFilter)} element empty so removed from outgoing request");
-            }
         }
         var dateFilter = filter.dateFilter;
-        if (dateFilter is object)
+        if (dateFilter is not null)
         {
             if (dateFilter.dates.IsNullOrEmpty()) dateFilter.dates = null;
             if (dateFilter.ranges.IsNullOrEmpty()) dateFilter.ranges = null;
             if (dateFilter.dates is null && dateFilter.ranges is null)
-            {
-                dateFilter = null;
                 _logger.LogDebug($"{nameof(dateFilter)} element empty so removed from outgoing request");
-            }
             //do we need to validate start/end date ranges, i.e. start before end...?
         }
         var mediaTypeFilter = filter.mediaTypeFilter;
-        if (mediaTypeFilter is object)
-        {
-            if (mediaTypeFilter.mediaTypes.IsNullOrEmpty())
-            {
-                mediaTypeFilter = null;
-                _logger.LogDebug($"{nameof(mediaTypeFilter)} element empty so removed from outgoing request");
-            }
-        }
+        if (mediaTypeFilter is not null && mediaTypeFilter.mediaTypes.IsNullOrEmpty())
+            _logger.LogDebug($"{nameof(mediaTypeFilter)} element empty so removed from outgoing request");
+
         var featureFilter = filter.featureFilter;
-        if (featureFilter is object)
-        {
-            if (featureFilter.includedFeatures.IsNullOrEmpty())
-            {
-                featureFilter = null;
-                _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
-            }
-        }
+        if (featureFilter is not null && featureFilter.includedFeatures.IsNullOrEmpty())
+            _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
+
         return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
     }
 
@@ -520,11 +504,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         var newMediaItems = new List<UploadItem> { uploadItem };
         var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
-        if (res is object && !res.newMediaItemResults.IsNullOrEmpty())
+        if (res is not null && !res.newMediaItemResults.IsNullOrEmpty())
             return res.newMediaItemResults[0];
         else
         {
-            _logger.LogError($"Upload failure, {uploadItem.fileName}");
+            _logger.LogError("{methodName}, upload failure '{fileName}'", nameof(AddMediaItemAsync), uploadItem.fileName);
             return null;
         }
     }
@@ -563,7 +547,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
         var req = new { newMediaItems, albumId, albumPosition };
         var tpl = await PostJson<mediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req);
-        if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
     #endregion
@@ -612,7 +596,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             var bytes = File.ReadAllBytes(path);
             var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
-            if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+            if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             return tpl.result;
         }
         else
@@ -646,7 +630,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         };
 
                     tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
-                    if (tpl.error is object) throw new GooglePhotosException(tpl.error);
+                    if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
 
                     _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
                     _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
@@ -682,7 +666,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
                     //var bytes = File.ReadAllBytes("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
                     tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
-                    //if (tpl.error is object) throw new GooglePhotosAPIException(tpl.error);
+                    //if (tpl.error is not null) throw new GooglePhotosAPIException(tpl.error);
                     if (tpl.httpStatusCode != HttpStatusCode.OK)
                     {
                         //we were interrupted so query the status of the last upload
@@ -694,7 +678,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         tpl = await PostBytes<string, Error>(Upload_URL, Array.Empty<byte>(), headers: headers);
 
                         status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                        _logger.LogTrace($"status={status}");
+                        _logger.LogTrace("{methodName}, status={status}", nameof(UploadMediaAsync), status);
                         var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                         //Debug.WriteLine($"bytesReceived={bytesReceived}");
                         Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
@@ -705,7 +689,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         offset += bytes.Length;
                         RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
                         batchIndex++;
-                        //if (callback is object)
+                        //if (callback is not null)
                         //    callback(bytes.Length);
                         //if (bytes.Length < Upload_Chunk_Granularity)
                         //    break;//this was the last one

@@ -6,7 +6,7 @@ namespace CasCap;
 
 public class Program
 {
-    static string _environmentName = "Development";
+    static readonly string _environmentName = "Development";
 
     public static void Main(string[] args) =>
         Host.CreateDefaultBuilder(args)

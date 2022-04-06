@@ -569,10 +569,10 @@ public class MediaItem
     public DateTime syncDate { get; } = DateTime.UtcNow;
 
     [JsonIgnore]
-    public bool isPhoto { get { return mediaMetadata.photo is object; } }
+    public bool isPhoto { get { return mediaMetadata.photo is not null; } }
 
     [JsonIgnore]
-    public bool isVideo { get { return mediaMetadata.video is object; } }
+    public bool isVideo { get { return mediaMetadata.video is not null; } }
 
     /// <summary>
     /// The type of the media item to help easily identify the type of media (for example: image/jpg).

@@ -18,7 +18,7 @@ public class MyBackgroundService : BackgroundService
         _googlePhotosSvc = googlePhotosSvc;
     }
 
-    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug($"starting {nameof(ExecuteAsync)}...");
 
@@ -37,7 +37,7 @@ public class MyBackgroundService : BackgroundService
         Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
         //retrieve all media items in the album
-        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id, cancellationToken: cancellationToken);
         if (albumMediaItems is null) throw new Exception("retrieve media items by album id failed!");
         var i = 1;
         foreach (var item in albumMediaItems)

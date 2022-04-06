@@ -14,7 +14,7 @@ public class Tests : TestBase
 {
     public Tests(ITestOutputHelper output) : base(output) { }
 
-    string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
+    readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
 
     [SkipIfCIBuildFact]
     public async Task LoginTest()
@@ -23,7 +23,7 @@ public class Tests : TestBase
         Assert.True(loginResult);
     }
 
-    string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
+    static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
     [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]
@@ -167,17 +167,15 @@ public class Tests : TestBase
                 //excludedContentCategories = new[] { contentCategoryType.PEOPLE }
             };
 
-        dateFilter dateFilter = null;
-        if (true)
-            dateFilter = new dateFilter
-            {
-                //dates = new date[] { new date { year = 2020 } },
-                //dates = new date[] { new date { year = 2016 } },
-                //dates = new date[] { new date { year = 2016, month = 12 } },
-                //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
-                //ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-                ranges = new range[] { new range { startDate = new date { year = 1900 }, endDate = new date { year = DateTime.UtcNow.Year } } },
-            };
+        dateFilter dateFilter = new()
+        {
+            //dates = new date[] { new date { year = 2020 } },
+            //dates = new date[] { new date { year = 2016 } },
+            //dates = new date[] { new date { year = 2016, month = 12 } },
+            //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
+            //ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
+            ranges = new range[] { new range { startDate = new date { year = 1900 }, endDate = new date { year = DateTime.UtcNow.Year } } },
+        };
         mediaTypeFilter mediaTypeFilter = null;
         if (false)
 #pragma warning disable CS0162 // Unreachable code detected

@@ -37,7 +37,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <!-- IDE1006 - suppress roslyn naming convention messages -->
     <!-- IDE0079 - Remove unnecessary suppression -->
-    <NoWarn>IDE1006;IDE0079</NoWarn>
+    <!-- IDE0042 - Variable declaration can be deconstructed -->
+    <NoWarn>IDE1006;IDE0079;IDE0042</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <!-- suppress 'Unreachable code detected' -->

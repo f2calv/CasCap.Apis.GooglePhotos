@@ -8,9 +8,9 @@ namespace CasCap;
 
 class Program
 {
-    static string _user = null;//e.g. "your.email@mydomain.com";
-    static string _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-    static string _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
+    static readonly string _user = null;//e.g. "your.email@mydomain.com";
+    static readonly string _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
+    static readonly string _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
     const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
 
     static GooglePhotosService _googlePhotosSvc;
@@ -34,8 +34,8 @@ class Program
         //var configuration = new ConfigurationBuilder().Build();
         var loggerFactory = LoggerFactory.Create(builder =>
         {
-                //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
-            });
+            //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
+        });
         var logger = loggerFactory.CreateLogger<GooglePhotosService>();
 
         //2) create a configuration object

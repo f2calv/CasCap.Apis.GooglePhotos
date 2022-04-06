@@ -41,7 +41,7 @@ public class GooglePhotosService : GooglePhotosServiceBase
 
     public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
     {
-        var filePaths = searchPattern is object ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
+        var filePaths = searchPattern is not null ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
         return _UploadMultiple(filePaths, albumId, uploadMethod);
     }
 
@@ -76,7 +76,7 @@ public class GooglePhotosService : GooglePhotosServiceBase
         if (downloadPhoto || qs.Count == 0) qs.Add("d");
         baseUrl += $"={string.Join("-", qs)}";
         var tpl = await Get<byte[], Error>(baseUrl);
-        if (tpl.error is object)
+        if (tpl.error is not null)
             throw new GooglePhotosException(tpl.error);
         else
             return tpl.result;
