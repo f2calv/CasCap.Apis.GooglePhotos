@@ -1,6 +1,5 @@
 ﻿using CasCap.Interfaces;
 using CasCap.Models;
-using System.Collections.Generic;
 namespace CasCap.Messages;
 
 internal class albumsGetResponse : ResponseBase

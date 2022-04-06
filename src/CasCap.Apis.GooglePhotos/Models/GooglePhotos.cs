@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.IO;
 namespace CasCap.Models;
 
 [JsonConverter(typeof(StringEnumConverter))]

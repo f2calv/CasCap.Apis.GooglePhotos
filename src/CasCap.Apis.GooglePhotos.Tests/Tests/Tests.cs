@@ -2,11 +2,7 @@
 using CasCap.Common.Testing;
 using CasCap.Models;
 using CasCap.Services;
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 namespace CasCap.Apis.GooglePhotos.Tests;

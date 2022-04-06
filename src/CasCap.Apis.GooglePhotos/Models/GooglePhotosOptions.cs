@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-namespace CasCap.Models;
+﻿namespace CasCap.Models;
 
 [Serializable]
 public class GooglePhotosOptions

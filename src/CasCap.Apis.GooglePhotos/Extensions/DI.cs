@@ -3,11 +3,8 @@ using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Polly;
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
