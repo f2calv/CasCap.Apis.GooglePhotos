@@ -13,3 +13,4 @@ updates:
   - dependency-name: Newtonsoft.Json
   - dependency-name: xunit
   - dependency-name: xunit.runner.visualstudio
+  - dependency-name: "CasCap.Common.*"
