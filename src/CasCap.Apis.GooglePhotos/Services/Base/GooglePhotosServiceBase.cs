@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Web;
+
 namespace CasCap.Services;
 
 public abstract class GooglePhotosServiceBase : HttpClientBase
@@ -591,7 +593,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         else if (new[] { GooglePhotosUploadMethod.ResumableSingle, GooglePhotosUploadMethod.ResumableMultipart }.Contains(uploadMethod))
         {
             headers.Add((X_Goog_Upload_Command, "start"));
-            headers.Add((X_Goog_Upload_File_Name, Path.GetFileName(path)));
+            var fileName = Path.GetFileName(path);
+            headers.Add((X_Goog_Upload_File_Name, HttpUtility.UrlPathEncode(fileName)));
             headers.Add((X_Goog_Upload_Protocol, "resumable"));
             headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));
         }

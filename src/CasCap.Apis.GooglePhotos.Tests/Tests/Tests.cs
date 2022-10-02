@@ -43,14 +43,16 @@ public class Tests : TestBase
         Assert.NotNull(newMediaItemResult.mediaItem.id);
     }
 
-    [SkipIfCIBuildFact]
-    public async Task UploadSingleTests()
+    [SkipIfCIBuildTheory]
+    [InlineData("test1.jpg", "test2.jpg")]
+    [InlineData("test1.jpg", "Урок-английского-10.jpg")]
+    public async Task UploadSingleTests(string file1, string file2)
     {
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
         //upload single media item
-        var mediaItem1a = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg");
+        var mediaItem1a = await _googlePhotosSvc.UploadSingle($"{_testFolder}{file1}");
         Assert.NotNull(mediaItem1a);
         Assert.NotNull(mediaItem1a.mediaItem);
         Assert.NotNull(mediaItem1a.mediaItem.id);
@@ -70,7 +72,7 @@ public class Tests : TestBase
         Assert.NotNull(album.id);
 
         //upload single media item, assign to above album
-        var mediaItem2a = await _googlePhotosSvc.UploadSingle($"{_testFolder}test2.jpg", album.id);
+        var mediaItem2a = await _googlePhotosSvc.UploadSingle($"{_testFolder}{file2}", album.id);
         Assert.NotNull(mediaItem2a);
         Assert.NotNull(mediaItem2a.mediaItem);
         Assert.NotNull(mediaItem2a.mediaItem.id);

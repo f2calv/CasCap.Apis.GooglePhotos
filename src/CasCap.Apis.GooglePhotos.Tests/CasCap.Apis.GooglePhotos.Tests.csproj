@@ -47,6 +47,7 @@
     <None Update="testdata\test7.jpg" CopyToOutputDirectory="Always" />
     <None Update="testdata\test8.jpg" CopyToOutputDirectory="Always" />
     <None Update="testdata\test9.jpg" CopyToOutputDirectory="Always" />
+	<None Update="testdata\Урок-английского-10.jpg" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>
