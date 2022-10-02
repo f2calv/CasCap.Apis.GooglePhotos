@@ -339,12 +339,17 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                 l.AddRange(batch);
                 if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
-                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
-                    {
-                        minDate = batch.Min(p => p.mediaMetadata.creationTime),
-                        maxDate = batch.Max(p => p.mediaMetadata.creationTime),
-                    });
-                pageToken = tpl.result.nextPageToken;
+                {
+                    //Note: low page sizes can return 0 records but still return a continuation token
+                    if (batch.Any())
+                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                        {
+                            minDate = batch.Min(p => p.mediaMetadata.creationTime),
+                            maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                        });
+                }
+                else
+                    pageToken = tpl.result.nextPageToken;
                 pageNumber++;
             }
             else

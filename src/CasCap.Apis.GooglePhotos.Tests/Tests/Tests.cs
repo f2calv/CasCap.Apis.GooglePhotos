@@ -314,14 +314,17 @@ public class Tests : TestBase
         Assert.True(result4);
     }
 
-    [SkipIfCIBuildFact]
-    public async Task DownloadBytesTests()
+    //[SkipIfCIBuildFact]
+    [SkipIfCIBuildTheory]
+    [InlineData(1, 10)]
+    [InlineData(2, int.MaxValue)]
+    public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
         //todo: check error on pagesize=1
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(2);
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
         if (mediaItems.Count != 1)
             throw new Exception("no media items available to test");
         var mediaItem = mediaItems[0];
