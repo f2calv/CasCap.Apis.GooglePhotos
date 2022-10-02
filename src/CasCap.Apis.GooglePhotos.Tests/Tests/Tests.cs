@@ -1,7 +1,7 @@
 ﻿using CasCap.Common.Extensions;
-using CasCap.Common.Testing;
 using CasCap.Models;
 using CasCap.Services;
+using CasCap.Xunit;
 using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
