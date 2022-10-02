@@ -644,7 +644,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             }
             else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
             {
-                var offset = 0;
+                var offset = 0L;
                 var attemptCount = 0;
                 var retryLimit = 10;//todo: move this into settings
                 var batchCount = Math.Ceiling(size / (double)Upload_Chunk_Granularity);
