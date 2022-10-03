@@ -339,18 +339,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                 l.AddRange(batch);
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
                 {
-                    //Note: low page sizes can return 0 records but still return a continuation token
-                    if (batch.Any())
-                        RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
-                        {
-                            minDate = batch.Min(p => p.mediaMetadata.creationTime),
-                            maxDate = batch.Max(p => p.mediaMetadata.creationTime),
-                        });
+                    //Note: low page sizes can return 0 records but still return a continuation token, weirdness
+                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                    {
+                        minDate = batch.Min(p => p.mediaMetadata.creationTime),
+                        maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                    });
                 }
-                else
-                    pageToken = tpl.result.nextPageToken;
+                pageToken = tpl.result.nextPageToken;
                 pageNumber++;
             }
             else
@@ -380,7 +378,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                 l.AddRange(batch);
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),

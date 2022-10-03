@@ -317,7 +317,12 @@ public class Tests : TestBase
     //[SkipIfCIBuildFact]
     [SkipIfCIBuildTheory]
     [InlineData(1, 10)]
+    [InlineData(1, 100)]
+    [InlineData(2, 10)]
+    [InlineData(2, 100)]
     [InlineData(2, int.MaxValue)]
+    [InlineData(3, 100)]
+    [InlineData(4, 100)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
         var loginResult = await _googlePhotosSvc.LoginAsync();
@@ -326,6 +331,7 @@ public class Tests : TestBase
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
         Assert.NotNull(mediaItems);
         Assert.True(mediaItems.Count > 0, "no media items available?");
+        Assert.True(mediaItems.Count == 11, "inaccurate list of media items returned?");
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
