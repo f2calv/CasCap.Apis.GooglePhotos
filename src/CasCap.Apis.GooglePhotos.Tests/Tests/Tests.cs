@@ -77,7 +77,7 @@ public class Tests : TestBase
         Assert.True(mediaItem2a.mediaItem.id.Length > 0);
 
         //retrieve all media items from album
-        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(albumMediaItems);
         Assert.True(albumMediaItems.Count == 1);
     }
@@ -121,7 +121,7 @@ public class Tests : TestBase
         {
             Debug.WriteLine($"{alb.title}\t{alb.mediaItemsCount};");
             //retrieve all media items in each album
-            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id);
+            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id).ToListAsync();
             Assert.NotNull(albumMediaItems);
             Assert.True(albumMediaItems.Count == alb.mediaItemsCount);
             var i = 1;
@@ -133,14 +133,14 @@ public class Tests : TestBase
         }
 
         //retrieve all media items
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync();
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync().ToListAsync();
         Assert.NotNull(mediaItems);
         Assert.True(mediaItems.Count >= filePaths1.Length + filePaths2.Length);
 
         //retrieve multiple media items by unique ids
         var ids = mediaItems.Select(p => p.id).ToList();
         ids.Add("invalid-id");
-        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
+        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray()).ToListAsync();
         Assert.NotNull(mediaItems2);
         Assert.True(ids.Count - mediaItems2.Count == 1);//should have 1 failed item
         foreach (var _mi in mediaItems2)
@@ -204,7 +204,7 @@ public class Tests : TestBase
             includeArchivedMedia = false,
         };
         //Debug.WriteLine(filter.ToJSON());
-        var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter);
+        var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter).ToListAsync();
         Assert.NotNull(searchResults);
         foreach (var result in searchResults)
             Debug.WriteLine($"{result.filename}");
@@ -271,7 +271,7 @@ public class Tests : TestBase
         Assert.True(mediaItem.mediaItem.id.Length > 0);
 
         //get album contents
-        var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems1);
         Assert.True(mediaItems1.Count == 1);
 
@@ -280,7 +280,7 @@ public class Tests : TestBase
         Assert.True(result2);
 
         //get album contents
-        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems2);
         Assert.True(mediaItems2.Count == 0);
 
@@ -289,7 +289,7 @@ public class Tests : TestBase
         Assert.True(result3);
 
         //get album contents
-        var mediaItems3 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems3 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems3);
         Assert.True(mediaItems3.Count == 1);
 
@@ -325,13 +325,15 @@ public class Tests : TestBase
     [InlineData(4, 100)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
+        var expectedCount = Directory.GetFiles(_testFolder).Count();
+
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount).ToListAsync();
         Assert.NotNull(mediaItems);
-        Assert.True(mediaItems.Count > 0, "no media items available?");
-        Assert.True(mediaItems.Count == 11, "inaccurate list of media items returned?");
+        Assert.True(mediaItems.Count > 0, "no media items returned!");
+        Assert.True(mediaItems.Count == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);

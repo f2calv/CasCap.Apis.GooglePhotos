@@ -41,7 +41,7 @@ public class ExifTests : TestBase
         Assert.Null(newMediaItemResult.mediaItem.baseUrl);
 
         //so now retrieve all media items
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync();
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync().ToListAsync();
 
         var uploadedMediaItem = mediaItems.FirstOrDefault(p => p.filename.Equals(fileName));
         Assert.NotNull(uploadedMediaItem);

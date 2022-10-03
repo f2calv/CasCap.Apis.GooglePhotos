@@ -2,9 +2,11 @@
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Web;
 
@@ -321,12 +323,13 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     #region https://photoslibrary.googleapis.com/v1/mediaItems
     //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
     //todo: add IPagable interface and merge with similar
-    async Task<List<MediaItem>> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
+    async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
-        var l = new List<MediaItem>();
+        //Note: mediaitem results are not garuanteed to be unique so we check returned ids in a volatile hashset
+        var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
         while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
@@ -338,11 +341,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             {
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
-                l.AddRange(batch);
+                foreach (var mi in batch)
+                    if (!hs.Contains(mi.id))
+                    {
+                        hs.Add(mi.id);
+                        yield return mi;
+                    }
                 if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
                 {
                     //Note: low page sizes can return 0 records but still return a continuation token, weirdness
-                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),
                         maxDate = batch.Max(p => p.mediaMetadata.creationTime),
@@ -354,18 +362,18 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else
                 break;
         }
-        return l;
     }
 
     //todo: add IPagable interface and merge with similar
-    async Task<List<MediaItem>> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, CancellationToken cancellationToken)
+    async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
         if (filters is not null && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
 
-        var l = new List<MediaItem>();
+        //Note: mediaitem results are not garuanteed to be unique so we check returned ids in a volatile hashset
+        var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
         while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
@@ -377,9 +385,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             {
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
-                l.AddRange(batch);
+                foreach (var mi in batch)
+                    if (!hs.Contains(mi.id))
+                    {
+                        hs.Add(mi.id);
+                        yield return mi;
+                    }
                 if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
-                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
+                    RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),
                         maxDate = batch.Max(p => p.mediaMetadata.creationTime),
@@ -390,13 +403,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else
                 break;
         }
-        return l;
     }
 
-    public Task<List<MediaItem>> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
         => _GetMediaItemsAsync(pageSize, maxPageCount, excludeNonAppCreatedData, RequestUris.GET_mediaItems, cancellationToken);
 
-    public Task<List<MediaItem>> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
         => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
@@ -408,12 +420,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     //https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=media-item-id&mediaItemIds=another-media-item-id&mediaItemIds=incorrect-media-item-id
-    public Task<List<MediaItem>> GetMediaItemsByIdsAsync(string[] mediaItemIds)
-        => GetMediaItemsByIdsAsync(mediaItemIds.ToList());
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByIdsAsync(string[] mediaItemIds, CancellationToken cancellationToken = default)
+        => GetMediaItemsByIdsAsync(mediaItemIds.ToList(), cancellationToken);
 
-    public async Task<List<MediaItem>> GetMediaItemsByIdsAsync(List<string> mediaItemIds)
+    public async IAsyncEnumerable<MediaItem> GetMediaItemsByIdsAsync(List<string> mediaItemIds, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var l = new List<MediaItem>();
+        var hs = new HashSet<string>();
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
@@ -434,33 +446,38 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 foreach (var result in tpl.result.mediaItemResults)
                 {
                     if (result.status is null)
-                        l.Add(result.mediaItem);
+                    {
+                        if (!hs.Contains(result.mediaItem.id))
+                        {
+                            hs.Add(result.mediaItem.id);
+                            yield return result.mediaItem;
+                        }
+                    }
                     else
                         _logger.LogWarning("{methodName}, status={status}", nameof(GetMediaItemsByIdsAsync), result.status);//we highlight if any objects returned a non-null status object
                 }
                 if (batch.Key + 1 != batches.Count)
-                    RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, l.Count));
+                    RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, hs.Count));
             }
         }
-        return l;
     }
 
-    public Task<List<MediaItem>> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(startDate, endDate), maxPageCount, cancellationToken);
 
-    public Task<List<MediaItem>> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(category), maxPageCount, cancellationToken);
 
-    public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
-    public Task<List<MediaItem>> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
-    public Task<List<MediaItem>> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => _GetMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
 
-    Task<List<MediaItem>> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
+    IAsyncEnumerable<MediaItem> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
     {
         //validate/tidy outgoing filter object
         var contentFilter = filter.contentFilter;

@@ -82,7 +82,7 @@ class Program
         Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
         //retrieve all media items in the album
-        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         if (albumMediaItems is null) throw new Exception("retrieve media items by album id failed!");
         var i = 1;
         foreach (var item in albumMediaItems)
