@@ -608,6 +608,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             headers.Add((X_Goog_Upload_Command, "start"));
             var fileName = Path.GetFileName(path);
+            //Note: UrlPathEncode below is not intended to be used... but fixes https://github.com/f2calv/CasCap.Apis.GooglePhotos/issues/110
             headers.Add((X_Goog_Upload_File_Name, HttpUtility.UrlPathEncode(fileName)));
             headers.Add((X_Goog_Upload_Protocol, "resumable"));
             headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));

@@ -57,6 +57,7 @@ public class ExifTests : TestBase
         var tplWithExif = await GetExifInfo(bytesWithExif);
         Assert.Null(tplWithExif.latitude);//location exif data always stripped :(
         Assert.Null(tplWithExif.longitude);//location exif data always stripped :(
+        Assert.True(tplOriginal.exifTagCount > tplWithExif.exifTagCount);//due to stripping fewer xif tags are returned
         Assert.True(googleExifTagCount < tplWithExif.exifTagCount);
     }
 
