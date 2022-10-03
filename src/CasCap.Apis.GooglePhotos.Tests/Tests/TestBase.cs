@@ -11,6 +11,8 @@ public abstract class TestBase
 
     protected GooglePhotosService _googlePhotosSvc;
 
+    protected readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
+
     public TestBase(ITestOutputHelper output)
     {
         var configuration = new ConfigurationBuilder()

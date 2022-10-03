@@ -14,8 +14,6 @@ public class Tests : TestBase
 {
     public Tests(ITestOutputHelper output) : base(output) { }
 
-    readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
-
     [SkipIfCIBuildFact]
     public async Task LoginTest()
     {
@@ -325,15 +323,11 @@ public class Tests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        //todo: check error on pagesize=1
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
-        if (mediaItems.Count != 1)
-            throw new Exception("no media items available to test");
-        var mediaItem = mediaItems[0];
+        Assert.NotNull(mediaItems);
+        Assert.True(mediaItems.Count > 0, "no media items available?");
 
-        var bytes = await _googlePhotosSvc.DownloadBytes(mediaItem);
+        var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
-
-        //todo: check meta data is not returned, and then IS returned with =d
     }
 }

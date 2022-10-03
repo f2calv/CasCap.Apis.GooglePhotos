@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>
@@ -48,6 +49,7 @@
     <None Update="testdata\test8.jpg" CopyToOutputDirectory="Always" />
     <None Update="testdata\test9.jpg" CopyToOutputDirectory="Always" />
 	<None Update="testdata\Урок-английского-10.jpg" CopyToOutputDirectory="Always" />
+	<None Update="testdata\test11.jpg" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>
