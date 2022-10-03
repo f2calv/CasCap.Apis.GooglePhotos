@@ -2,7 +2,6 @@
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
