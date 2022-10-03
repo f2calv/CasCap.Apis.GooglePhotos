@@ -13,11 +13,6 @@ public class ExifTests : TestBase
 {
     public ExifTests(ITestOutputHelper output) : base(output) { }
 
-    /// <summary>
-    /// Minimal exif tags added by Google.
-    /// </summary>
-    const int googleExifTagCount = 5;
-
     [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData("test11.jpg", 55.041388888888889d, 8.4677777777777781d, 62)]
     public async Task CheckExifData(string fileName, double latitude, double longitude, int exifTagCount)
@@ -47,17 +42,12 @@ public class ExifTests : TestBase
         Assert.NotNull(uploadedMediaItem);
         Assert.True(uploadedMediaItem.isPhoto);
 
-        var bytesNoExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem, includeExifMetadata: false);
-        Assert.NotNull(bytesNoExif);
-        var tplNoExif = await GetExifInfo(bytesNoExif);
-        Assert.True(googleExifTagCount == tplNoExif.exifTagCount);
-
-        var bytesWithExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem, includeExifMetadata: true);
-        Assert.NotNull(bytesWithExif);
-        var tplWithExif = await GetExifInfo(bytesWithExif);
-        Assert.Null(tplWithExif.latitude);//location exif data always stripped :(
-        Assert.Null(tplWithExif.longitude);//location exif data always stripped :(
-        Assert.True(googleExifTagCount < tplWithExif.exifTagCount);
+        var bytesInclExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem);
+        Assert.NotNull(bytesInclExif);
+        var tplInclExif = await GetExifInfo(bytesInclExif);
+        Assert.Null(tplInclExif.latitude);//location exif data always stripped :(
+        Assert.Null(tplInclExif.longitude);//location exif data always stripped :(
+        Assert.True(tplOriginal.exifTagCount > tplInclExif.exifTagCount);//due to stripping fewer xif tags are returned
     }
 
     async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(string path)

@@ -325,13 +325,15 @@ public class Tests : TestBase
     [InlineData(4, 100)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
+        var expectedCount = Directory.GetFiles(_testFolder).Count();
+
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
         Assert.NotNull(mediaItems);
-        Assert.True(mediaItems.Count > 0, "no media items available?");
-        Assert.True(mediaItems.Count == 11, "inaccurate list of media items returned?");
+        Assert.True(mediaItems.Count > 0, "no media items returned!");
+        Assert.True(mediaItems.Count == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);

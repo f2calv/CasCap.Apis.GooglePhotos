@@ -61,14 +61,13 @@ public class GooglePhotosService : GooglePhotosServiceBase
     /// <summary>
     /// Download photo bytes. If the media item is a video then a thumbnail graphic of the video will be downloaded, use downloadVideoBytes get the raw bytes of the video.
     /// </summary>
-    public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
-        => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.isPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.isVideo && downloadVideoBytes);
+    public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool download = false)
+        => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, downloadPhoto: mediaItem.isPhoto && download, downloadVideo: mediaItem.isVideo && download);
 
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
-    async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
+    async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool downloadPhoto = false, bool downloadVideo = false)
     {
-        if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentNullException(nameof(baseUrl), $"baseUrl is expected!");
         var qs = new List<string>();
         if (maxWidth.HasValue || maxHeight.HasValue)
         {
@@ -76,10 +75,9 @@ public class GooglePhotosService : GooglePhotosServiceBase
             if (maxHeight.HasValue) qs.Add($"h{maxHeight.Value}");
             if (crop) qs.Add("c");
         }
-        if (includeExifMetadata) qs.Add("d");
-        if (downloadVideoBytes) qs.Add("dv");
-        if (qs.Count > 0)
-            baseUrl += $"={string.Join("-", qs)}";
+        if (downloadVideo) qs.Add("dv");
+        if (downloadPhoto || qs.Count == 0) qs.Add("d");
+        baseUrl += $"={string.Join("-", qs)}";
         var tpl = await Get<byte[], Error>(baseUrl);
         if (tpl.error is not null)
             throw new GooglePhotosException(tpl.error);
