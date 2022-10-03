@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public class MyBackgroundService : BackgroundService
 {
