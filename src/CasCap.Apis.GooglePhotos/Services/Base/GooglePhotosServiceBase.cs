@@ -1,12 +1,13 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using MimeTypes;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Web;
+
 namespace CasCap.Services;
 
 public abstract class GooglePhotosServiceBase : HttpClientBase
@@ -338,12 +339,15 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                 l.AddRange(batch);
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
+                {
+                    //Note: low page sizes can return 0 records but still return a continuation token, weirdness
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),
                         maxDate = batch.Max(p => p.mediaMetadata.creationTime),
                     });
+                }
                 pageToken = tpl.result.nextPageToken;
                 pageNumber++;
             }
@@ -374,7 +378,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 var batch = new List<MediaItem>(pageSize);
                 if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
                 l.AddRange(batch);
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),
@@ -587,7 +591,9 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         else if (new[] { GooglePhotosUploadMethod.ResumableSingle, GooglePhotosUploadMethod.ResumableMultipart }.Contains(uploadMethod))
         {
             headers.Add((X_Goog_Upload_Command, "start"));
-            headers.Add((X_Goog_Upload_File_Name, Path.GetFileName(path)));
+            var fileName = Path.GetFileName(path);
+            //Note: UrlPathEncode below is not intended to be used... but fixes https://github.com/f2calv/CasCap.Apis.GooglePhotos/issues/110
+            headers.Add((X_Goog_Upload_File_Name, HttpUtility.UrlPathEncode(fileName)));
             headers.Add((X_Goog_Upload_Protocol, "resumable"));
             headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));
         }
@@ -640,7 +646,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             }
             else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
             {
-                var offset = 0;
+                var offset = 0L;
                 var attemptCount = 0;
                 var retryLimit = 10;//todo: move this into settings
                 var batchCount = Math.Ceiling(size / (double)Upload_Chunk_Granularity);

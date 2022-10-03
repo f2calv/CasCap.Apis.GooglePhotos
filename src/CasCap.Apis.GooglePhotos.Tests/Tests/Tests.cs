@@ -1,7 +1,7 @@
 ﻿using CasCap.Common.Extensions;
-using CasCap.Common.Testing;
 using CasCap.Models;
 using CasCap.Services;
+using CasCap.Xunit;
 using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,8 +13,6 @@ namespace CasCap.Apis.GooglePhotos.Tests;
 public class Tests : TestBase
 {
     public Tests(ITestOutputHelper output) : base(output) { }
-
-    readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
 
     [SkipIfCIBuildFact]
     public async Task LoginTest()
@@ -43,14 +41,16 @@ public class Tests : TestBase
         Assert.NotNull(newMediaItemResult.mediaItem.id);
     }
 
-    [SkipIfCIBuildFact]
-    public async Task UploadSingleTests()
+    [SkipIfCIBuildTheory]
+    [InlineData("test1.jpg", "test2.jpg")]
+    [InlineData("test1.jpg", "Урок-английского-10.jpg")]
+    public async Task UploadSingleTests(string file1, string file2)
     {
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
         //upload single media item
-        var mediaItem1a = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg");
+        var mediaItem1a = await _googlePhotosSvc.UploadSingle($"{_testFolder}{file1}");
         Assert.NotNull(mediaItem1a);
         Assert.NotNull(mediaItem1a.mediaItem);
         Assert.NotNull(mediaItem1a.mediaItem.id);
@@ -70,7 +70,7 @@ public class Tests : TestBase
         Assert.NotNull(album.id);
 
         //upload single media item, assign to above album
-        var mediaItem2a = await _googlePhotosSvc.UploadSingle($"{_testFolder}test2.jpg", album.id);
+        var mediaItem2a = await _googlePhotosSvc.UploadSingle($"{_testFolder}{file2}", album.id);
         Assert.NotNull(mediaItem2a);
         Assert.NotNull(mediaItem2a.mediaItem);
         Assert.NotNull(mediaItem2a.mediaItem.id);
@@ -312,5 +312,30 @@ public class Tests : TestBase
         //unshare the album
         var result4 = await _googlePhotosSvc.UnShareAlbumAsync(album.id);
         Assert.True(result4);
+    }
+
+    //[SkipIfCIBuildFact]
+    [SkipIfCIBuildTheory]
+    [InlineData(1, 10)]
+    [InlineData(1, 100)]
+    [InlineData(2, 10)]
+    [InlineData(2, 100)]
+    [InlineData(2, int.MaxValue)]
+    [InlineData(3, 100)]
+    [InlineData(4, 100)]
+    public async Task DownloadBytesTests(int pageSize, int maxPageCount)
+    {
+        var expectedCount = Directory.GetFiles(_testFolder).Count();
+
+        var loginResult = await _googlePhotosSvc.LoginAsync();
+        Assert.True(loginResult);
+
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
+        Assert.NotNull(mediaItems);
+        Assert.True(mediaItems.Count > 0, "no media items returned!");
+        Assert.True(mediaItems.Count == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
+
+        var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
+        Assert.NotNull(bytes);
     }
 }

@@ -58,6 +58,9 @@ public class GooglePhotosService : GooglePhotosServiceBase
         return await AddMediaItemsAsync(uploadItems, albumId);
     }
 
+    /// <summary>
+    /// Download photo bytes. If the media item is a video then a thumbnail graphic of the video will be downloaded, use downloadVideoBytes get the raw bytes of the video.
+    /// </summary>
     public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool download = false)
         => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, downloadPhoto: mediaItem.isPhoto && download, downloadVideo: mediaItem.isVideo && download);
 
