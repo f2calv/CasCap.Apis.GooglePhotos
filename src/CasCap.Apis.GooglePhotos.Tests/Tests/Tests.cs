@@ -169,12 +169,12 @@ public class Tests : TestBase
 
         dateFilter dateFilter = new()
         {
-            //dates = new date[] { new date { year = 2020 } },
-            //dates = new date[] { new date { year = 2016 } },
-            //dates = new date[] { new date { year = 2016, month = 12 } },
-            //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
-            //ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-            ranges = new range[] { new range { startDate = new date { year = 1900 }, endDate = new date { year = DateTime.UtcNow.Year } } },
+            //dates = new gDate[] { new gDate { year = 2020 } },
+            //dates = new gDate[] { new gDate { year = 2016 } },
+            //dates = new gDate[] { new gDate { year = 2016, month = 12 } },
+            //dates = new gDate[] { new gDate { year = 2016, month = 12, day = 16 } },
+            //ranges = new gDateRange[] { new gDateRange { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
+            ranges = new gDateRange[] { new gDateRange { startDate = new gDate { year = 1900 }, endDate = new gDate { year = DateTime.UtcNow.Year } } },
         };
         mediaTypeFilter mediaTypeFilter = null;
         if (false)
