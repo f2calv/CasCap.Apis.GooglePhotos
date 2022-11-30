@@ -325,7 +325,7 @@ public class Tests : TestBase
     [InlineData(4, 100)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
-        var expectedCount = Directory.GetFiles(_testFolder).Count();
+        var expectedCount = Directory.GetFiles(_testFolder).Length;
 
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
