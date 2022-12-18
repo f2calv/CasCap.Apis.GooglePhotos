@@ -338,7 +338,7 @@ public class Tests : TestBase
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount).ToListAsync();
         Assert.NotNull(mediaItems);
         Assert.True(mediaItems.Count > 0, "no media items returned!");
-        Assert.True(mediaItems.Count == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
+        Assert.True(mediaItems.Select(p => p.id).Distinct().Count() == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
