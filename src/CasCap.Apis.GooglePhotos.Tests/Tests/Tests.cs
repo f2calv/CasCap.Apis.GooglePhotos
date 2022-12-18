@@ -32,13 +32,16 @@ public class Tests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var path = $"{_testFolder}test.mp4";
-        var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod);
-        Assert.NotNull(uploadToken);
-        var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
-        Assert.NotNull(newMediaItemResult);
-        Assert.NotNull(newMediaItemResult.mediaItem);
-        Assert.NotNull(newMediaItemResult.mediaItem.id);
+        var paths = Directory.GetFiles(_testFolder);
+        foreach (var path in paths)
+        {
+            var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod);
+            Assert.NotNull(uploadToken);
+            var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
+            Assert.NotNull(newMediaItemResult);
+            Assert.NotNull(newMediaItemResult.mediaItem);
+            Assert.NotNull(newMediaItemResult.mediaItem.id);
+        }
     }
 
     [SkipIfCIBuildTheory]
@@ -323,6 +326,8 @@ public class Tests : TestBase
     [InlineData(2, int.MaxValue)]
     [InlineData(3, 100)]
     [InlineData(4, 100)]
+    [InlineData(10, 10)]
+    [InlineData(20, 10)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
         var expectedCount = Directory.GetFiles(_testFolder).Length;
