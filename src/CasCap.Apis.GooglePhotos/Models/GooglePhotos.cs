@@ -132,7 +132,7 @@ public class Filter
     {
         dateFilter = new dateFilter
         {
-            ranges = new[] { new range { startDate = new date(startDate), endDate = new date(endDate) } }
+            ranges = new[] { new gDateRange { startDate = new gDate(startDate), endDate = new gDate(endDate) } }
         };
     }
 
@@ -158,8 +158,8 @@ public class contentFilter
 
 public class dateFilter
 {
-    public date[]? dates { get; set; }
-    public range[]? ranges { get; set; }
+    public gDate[]? dates { get; set; }
+    public gDateRange[]? ranges { get; set; }
 }
 
 public class featureFilter
@@ -172,18 +172,18 @@ public class mediaTypeFilter
     public GooglePhotosMediaType[] mediaTypes { get; set; } = default!;
 }
 
-public class date
+public class gDate
 {
-    public date() { }
+    public gDate() { }
 
-    public date(DateTime dt)
+    public gDate(DateTime dt)
     {
         this.year = dt.Year;
         this.month = dt.Month;
         this.day = dt.Day;
     }
 
-    public date(int year, int month, int day)
+    public gDate(int year, int month, int day)
     {
         this.year = year;
         this.month = month;
@@ -195,10 +195,10 @@ public class date
     public int day { get; set; }
 }
 
-public class range
+public class gDateRange
 {
-    public date startDate { get; set; } = default!;
-    public date endDate { get; set; } = default!;
+    public gDate startDate { get; set; } = default!;
+    public gDate endDate { get; set; } = default!;
 }
 
 public class Album

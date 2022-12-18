@@ -32,13 +32,16 @@ public class Tests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var path = $"{_testFolder}test.mp4";
-        var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod);
-        Assert.NotNull(uploadToken);
-        var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
-        Assert.NotNull(newMediaItemResult);
-        Assert.NotNull(newMediaItemResult.mediaItem);
-        Assert.NotNull(newMediaItemResult.mediaItem.id);
+        var paths = Directory.GetFiles(_testFolder);
+        foreach (var path in paths)
+        {
+            var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod);
+            Assert.NotNull(uploadToken);
+            var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
+            Assert.NotNull(newMediaItemResult);
+            Assert.NotNull(newMediaItemResult.mediaItem);
+            Assert.NotNull(newMediaItemResult.mediaItem.id);
+        }
     }
 
     [SkipIfCIBuildTheory]
@@ -77,7 +80,7 @@ public class Tests : TestBase
         Assert.True(mediaItem2a.mediaItem.id.Length > 0);
 
         //retrieve all media items from album
-        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(albumMediaItems);
         Assert.True(albumMediaItems.Count == 1);
     }
@@ -121,7 +124,7 @@ public class Tests : TestBase
         {
             Debug.WriteLine($"{alb.title}\t{alb.mediaItemsCount};");
             //retrieve all media items in each album
-            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id);
+            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id).ToListAsync();
             Assert.NotNull(albumMediaItems);
             Assert.True(albumMediaItems.Count == alb.mediaItemsCount);
             var i = 1;
@@ -133,14 +136,14 @@ public class Tests : TestBase
         }
 
         //retrieve all media items
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync();
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync().ToListAsync();
         Assert.NotNull(mediaItems);
         Assert.True(mediaItems.Count >= filePaths1.Length + filePaths2.Length);
 
         //retrieve multiple media items by unique ids
         var ids = mediaItems.Select(p => p.id).ToList();
         ids.Add("invalid-id");
-        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray());
+        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray()).ToListAsync();
         Assert.NotNull(mediaItems2);
         Assert.True(ids.Count - mediaItems2.Count == 1);//should have 1 failed item
         foreach (var _mi in mediaItems2)
@@ -169,12 +172,12 @@ public class Tests : TestBase
 
         dateFilter dateFilter = new()
         {
-            //dates = new date[] { new date { year = 2020 } },
-            //dates = new date[] { new date { year = 2016 } },
-            //dates = new date[] { new date { year = 2016, month = 12 } },
-            //dates = new date[] { new date { year = 2016, month = 12, day = 16 } },
-            //ranges = new range[] { new range { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-            ranges = new range[] { new range { startDate = new date { year = 1900 }, endDate = new date { year = DateTime.UtcNow.Year } } },
+            //dates = new gDate[] { new gDate { year = 2020 } },
+            //dates = new gDate[] { new gDate { year = 2016 } },
+            //dates = new gDate[] { new gDate { year = 2016, month = 12 } },
+            //dates = new gDate[] { new gDate { year = 2016, month = 12, day = 16 } },
+            //ranges = new gDateRange[] { new gDateRange { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
+            ranges = new gDateRange[] { new gDateRange { startDate = new gDate { year = 1900 }, endDate = new gDate { year = DateTime.UtcNow.Year } } },
         };
         mediaTypeFilter mediaTypeFilter = null;
         if (false)
@@ -204,7 +207,7 @@ public class Tests : TestBase
             includeArchivedMedia = false,
         };
         //Debug.WriteLine(filter.ToJSON());
-        var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter);
+        var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter).ToListAsync();
         Assert.NotNull(searchResults);
         foreach (var result in searchResults)
             Debug.WriteLine($"{result.filename}");
@@ -271,7 +274,7 @@ public class Tests : TestBase
         Assert.True(mediaItem.mediaItem.id.Length > 0);
 
         //get album contents
-        var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems1);
         Assert.True(mediaItems1.Count == 1);
 
@@ -280,7 +283,7 @@ public class Tests : TestBase
         Assert.True(result2);
 
         //get album contents
-        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems2);
         Assert.True(mediaItems2.Count == 0);
 
@@ -289,7 +292,7 @@ public class Tests : TestBase
         Assert.True(result3);
 
         //get album contents
-        var mediaItems3 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id);
+        var mediaItems3 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems3);
         Assert.True(mediaItems3.Count == 1);
 
@@ -323,17 +326,19 @@ public class Tests : TestBase
     [InlineData(2, int.MaxValue)]
     [InlineData(3, 100)]
     [InlineData(4, 100)]
+    [InlineData(10, 10)]
+    [InlineData(20, 10)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
-        var expectedCount = Directory.GetFiles(_testFolder).Count();
+        var expectedCount = Directory.GetFiles(_testFolder).Length;
 
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount);
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount).ToListAsync();
         Assert.NotNull(mediaItems);
         Assert.True(mediaItems.Count > 0, "no media items returned!");
-        Assert.True(mediaItems.Count == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
+        Assert.True(mediaItems.Select(p => p.id).Distinct().Count() == expectedCount, $"inaccurate list of media items returned, expected {expectedCount} but returned {mediaItems.Count}");
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
