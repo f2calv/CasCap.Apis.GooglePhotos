@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Auth" Version="1.58.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.59.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="CasCap.Common.Net" Version="2.0.3" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
