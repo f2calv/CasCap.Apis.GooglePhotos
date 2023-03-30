@@ -1,7 +1,6 @@
 ﻿using CasCap.Models;
 using CasCap.Services;
 using CasCap.Xunit;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Diagnostics;
 using Xunit;
@@ -28,7 +27,7 @@ public class ExifTests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var tplOriginal = await GetExifInfo(path);
+        var tplOriginal = await ExifTests.GetExifInfo(path);
         Assert.Equal(latitude, tplOriginal.latitude);
         Assert.Equal(longitude, tplOriginal.longitude);
         Assert.Equal(exifTagCount, tplOriginal.exifTagCount);
@@ -49,25 +48,25 @@ public class ExifTests : TestBase
 
         var bytesNoExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem, includeExifMetadata: false);
         Assert.NotNull(bytesNoExif);
-        var tplNoExif = await GetExifInfo(bytesNoExif);
+        var tplNoExif = await ExifTests.GetExifInfo(bytesNoExif);
         Assert.True(googleExifTagCount == tplNoExif.exifTagCount);
 
         var bytesWithExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem, includeExifMetadata: true);
         Assert.NotNull(bytesWithExif);
-        var tplWithExif = await GetExifInfo(bytesWithExif);
+        var tplWithExif = await ExifTests.GetExifInfo(bytesWithExif);
         Assert.Null(tplWithExif.latitude);//location exif data always stripped :(
         Assert.Null(tplWithExif.longitude);//location exif data always stripped :(
         Assert.True(tplOriginal.exifTagCount > tplWithExif.exifTagCount);//due to Google-stripping fewer exif tags are returned
         Assert.True(googleExifTagCount < tplWithExif.exifTagCount);
     }
 
-    async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(string path)
+    static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(string path)
     {
         using var image = await Image.LoadAsync(path);
         return GetLatLong(image);
     }
 
-    async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(byte[] bytes)
+    static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(byte[] bytes)
     {
         var stream = new MemoryStream(bytes);
         using var image = await Image.LoadAsync(stream);
@@ -77,20 +76,18 @@ public class ExifTests : TestBase
     static (double? latitude, double? longitude, int exifTagCount) GetLatLong(Image image)
     {
         double? latitude = null, longitude = null;
-        var exifTagCount = image.Metadata.ExifProfile?.Values.Count() ?? 0;
+        var exifTagCount = image.Metadata.ExifProfile?.Values.Count ?? 0;
         if (image.Metadata.ExifProfile.Values?.Any() ?? false)
         {
             var exifData = image.Metadata.ExifProfile;
             if (exifData != null)
             {
-                var gpsLatitude = exifData.GetValue(ExifTag.GPSLatitude);
-                var gpsLatitudeRef = exifData.GetValue(ExifTag.GPSLatitudeRef);
-                if (gpsLatitude is not null && gpsLatitudeRef is not null)
+                if (exifData.TryGetValue(ExifTag.GPSLatitude, out var gpsLatitude)
+                    && exifData.TryGetValue(ExifTag.GPSLatitudeRef, out var gpsLatitudeRef))
                     latitude = GetCoordinates(gpsLatitudeRef.ToString(), gpsLatitude.Value);
 
-                var gpsLong = exifData.GetValue(ExifTag.GPSLongitude);
-                var gpsLongRef = exifData.GetValue(ExifTag.GPSLongitudeRef);
-                if (gpsLong is not null && gpsLongRef is not null)
+                if (exifData.TryGetValue(ExifTag.GPSLongitude, out var gpsLong)
+                    && exifData.TryGetValue(ExifTag.GPSLongitudeRef, out var gpsLongRef))
                     longitude = GetCoordinates(gpsLongRef.ToString(), gpsLong.Value);
 
                 Debug.WriteLine($"latitude,longitude = {latitude},{longitude}");

@@ -18,7 +18,7 @@ public class GooglePhotosService : GooglePhotosServiceBase
     public async Task<Album?> GetOrCreateAlbumAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
     {
         var album = await GetAlbumByTitleAsync(title, comparisonType);
-        if (album is null) album = await CreateAlbumAsync(title);
+        album ??= await CreateAlbumAsync(title);
         return album;
     }
 
