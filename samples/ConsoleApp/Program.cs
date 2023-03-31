@@ -44,6 +44,9 @@ var options = new GooglePhotosOptions
 //3) (Optional) display local OAuth 2.0 JSON file(s);
 var path = options.FileDataStoreFullPathOverride is null ? options.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
 Console.WriteLine($"{nameof(options.FileDataStoreFullPathOverride)}:\t{path}");
+
+if (Directory.Exists(path) == false) Directory.CreateDirectory(path);
+
 var files = Directory.GetFiles(path);
 if (files.Length == 0)
     Console.WriteLine($"\t- n/a this is probably the first time we have authenticated...");
