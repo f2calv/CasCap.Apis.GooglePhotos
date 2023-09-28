@@ -416,7 +416,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
-    public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, bool excludeNonAppCreatedData = false)
+    public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId)
     {
         var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
@@ -441,7 +441,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             var sb = new StringBuilder();
             foreach (var mediaItemId in batch.Value)
                 sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
-            var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString().Substring(1)}";
+            var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString()[1..]}";
             var tpl = await Get<mediaItemsGetResponse, Error>(url);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
@@ -631,8 +631,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             var tpl = await PostBytes<string, Error>(RequestUris.uploads, Array.Empty<byte>(), headers: headers);
             var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
-            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL);
-            if (Upload_URL is null) throw new Exception($"");
+            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new Exception($"{nameof(X_Goog_Upload_URL)}");
             //Debug.WriteLine($"{Upload_URL}={Upload_URL}");
             var sUpload_Chunk_Granularity = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Chunk_Granularity);
             if (int.TryParse(sUpload_Chunk_Granularity, out var Upload_Chunk_Granularity) && Upload_Chunk_Granularity <= 0)
