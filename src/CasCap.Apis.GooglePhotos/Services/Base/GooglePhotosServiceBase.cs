@@ -148,7 +148,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
         _logger.LogDebug("Authorisation granted or not required (if the saved access token already available)");
 
-        if (credential.Token.IsExpired(credential.Flow.Clock))
+        if (credential.Token.IsStale)
         {
             _logger.LogWarning("The access token has expired, refreshing it");
             if (await credential.RefreshTokenAsync(CancellationToken.None))
@@ -240,7 +240,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
     {
-        var queryParams = new Dictionary<string, string>(3);
+        var queryParams = new Dictionary<string, string?>(3);
         if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
         if (excludeNonAppCreatedData) queryParams.Add(nameof(excludeNonAppCreatedData), excludeNonAppCreatedData.ToString());
         if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
