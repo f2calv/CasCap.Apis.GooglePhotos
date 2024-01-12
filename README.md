@@ -12,7 +12,7 @@
 
 > Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
-This is an _unofficial_ Google Photos REST API library targeting .NET 6.0 & .NET 7.0.
+This is an _unofficial_ Google Photos REST API library targeting .NET 8.0.
 
 Note: Older projects that require .NET Standard 2.0 please use version 1.x of this library.
 
