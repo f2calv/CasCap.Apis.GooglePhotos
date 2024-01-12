@@ -1,6 +1,7 @@
 ﻿using CasCap.Models;
 using CasCap.Services;
 using CasCap.Xunit;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Diagnostics;
 using Xunit;
