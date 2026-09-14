@@ -20,6 +20,6 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
     <PackageVersion Include="MimeTypeMapOfficial" Version="1.0.17" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="10.0.12" />
-    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
   </ItemGroup>
 </Project>
